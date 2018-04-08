@@ -1,20 +1,25 @@
 /*
 
-   Copyright [2008] [Trevor Hogan]
+	ent-ghost
+	Copyright [2011-2013] [Jack Lu]
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	This file is part of the ent-ghost source code.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	ent-ghost is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	ent-ghost source code is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+	You should have received a copy of the GNU General Public License
+	along with ent-ghost source code. If not, see <http://www.gnu.org/licenses/>.
+
+	ent-ghost is modified from GHost++ (http://ghostplusplus.googlecode.com/)
+	GHost++ is Copyright [2008] [Trevor Hogan]
 
 */
 
@@ -966,8 +971,8 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANINVITATION( string accountName )
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );	// BNET header constant
 	packet.push_back( SID_CLANINVITATION );		// SID_CLANINVITATION
-	packet.push_back( 0 );						// packet length will be assigned later
-	packet.push_back( 0 );						// packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArray( packet, accountName);
 	AssignLength( packet );
@@ -981,8 +986,8 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANREMOVEMEMBER( string accountName )
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );	// BNET header constant
 	packet.push_back( SID_CLANREMOVEMEMBER );	// SID_CLANREMOVEMEMBER
-	packet.push_back( 0 );						// packet length will be assigned later
-	packet.push_back( 0 );						// packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArray( packet, accountName);
 
@@ -996,9 +1001,9 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANCHANGERANK( string accountName,  CBNETPr
 
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );       // BNET header constant
-	packet.push_back( SID_CLANCHANGERANK );			// SID_CLANCHANGERANK
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
+	packet.push_back( SID_CLANCHANGERANK );         // SID_CLANCHANGERANK
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArray( packet, accountName);
 	packet.push_back( rank );
@@ -1011,10 +1016,10 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANSETMOTD( string motd )
 	unsigned char Cookie[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );	// BNET header constant
-	packet.push_back( SID_CLANSETMOTD );		// SID_CLANSETMOTD
-	packet.push_back( 0 );						// packet length will be assigned later
-	packet.push_back( 0 );						// packet length will be assigned later
+	packet.push_back( BNET_HEADER_CONSTANT );       // BNET header constant
+	packet.push_back( SID_CLANSETMOTD );         // SID_CLANSETMOTD
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArray( packet, motd);
 	AssignLength( packet );
@@ -1026,10 +1031,10 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANCREATIONINVITATION( bool accept )
 	unsigned char Cookie[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
-	packet.push_back( SID_CLANCREATIONINVITATION );	// SID_CLANCREATIONINVITATION
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
+	packet.push_back( BNET_HEADER_CONSTANT );       // BNET header constant
+	packet.push_back( SID_CLANCREATIONINVITATION );         // SID_CLANCREATIONINVITATION
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArrayFast( packet, m_ClanLastInviteTag );
 	UTIL_AppendByteArrayFast( packet, m_ClanLastInviteName );
@@ -1048,10 +1053,10 @@ BYTEARRAY CBNETProtocol :: SEND_SID_CLANINVITATIONRESPONSE( bool accept )
 	unsigned char Cookie[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
-	packet.push_back( BNET_HEADER_CONSTANT );		// BNET header constant
-	packet.push_back( SID_CLANINVITATIONRESPONSE );	// SID_CLANCREATIONINVITATION
-	packet.push_back( 0 );							// packet length will be assigned later
-	packet.push_back( 0 );							// packet length will be assigned later
+	packet.push_back( BNET_HEADER_CONSTANT );       // BNET header constant
+	packet.push_back( SID_CLANINVITATIONRESPONSE );         // SID_CLANCREATIONINVITATION
+	packet.push_back( 0 );                                          // packet length will be assigned later
+	packet.push_back( 0 );                                          // packet length will be assigned later
 	UTIL_AppendByteArray( packet, Cookie, 4);
 	UTIL_AppendByteArrayFast( packet, m_ClanLastInviteTag );
 	UTIL_AppendByteArrayFast( packet, m_ClanLastInviteName );
@@ -1126,7 +1131,7 @@ string CIncomingGameHost :: GetIPString( )
 
 	if( m_IP.size( ) >= 4 )
 	{
-		for( unsigned int i = 0; i < 4; ++i )
+                for( unsigned int i = 0; i < 4; ++i )
 		{
 			Result += UTIL_ToString( (unsigned int)m_IP[i] );
 

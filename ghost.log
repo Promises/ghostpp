@@ -1,0 +1,38 @@
+[Sun Apr  8 21:07:16 2018] [GHOST] starting up
+[Sun Apr  8 21:07:16 2018] [GHOST] using log method 1, logging is enabled and [ghost.log] will not be locked
+[Sun Apr  8 21:07:16 2018] [GHOST] using monotonic timer with resolution 0.00 microseconds
+[Sun Apr  8 21:07:16 2018] [UDPSOCKET] using default broadcast target
+[Sun Apr  8 21:07:16 2018] [UDPSOCKET] using default broadcast target
+[Sun Apr  8 21:07:16 2018] [UDPSOCKET] using broadcast target [localhost]
+[Sun Apr  8 21:07:16 2018] [UDPSOCKET] invalid broadcast target, using default broadcast target
+[Sun Apr  8 21:07:16 2018] [GHOST] opening primary database
+[Sun Apr  8 21:07:16 2018] [MYSQL] connecting to database server
+[Sun Apr  8 21:07:16 2018] [MYSQL] Can't connect to local MySQL server through socket '/run/mysqld/mysqld.sock' (2 "No such file or directory")
+[Sun Apr  8 21:07:16 2018] [GHOST] attempting to find local IP addresses
+[Sun Apr  8 21:07:16 2018] [GHOST] local hostname is [HenningLinuxBookAir]
+[Sun Apr  8 21:07:16 2018] [GHOST] local IP address #1 is [127.0.0.1]
+[Sun Apr  8 21:07:16 2018] [GHOST] local IP address #2 is [127.0.0.1]
+[Sun Apr  8 21:07:16 2018] [GHOST] acting as Warcraft III: The Frozen Throne
+[Sun Apr  8 21:07:16 2018] [CONFIG] loading file [language.cfg]
+[Sun Apr  8 21:07:16 2018] [GHOST] missing bnet_username, skipping this battle.net connection
+[Sun Apr  8 21:07:16 2018] [GHOST] warning - no battle.net connections found in config file
+[Sun Apr  8 21:07:16 2018] [GHOST] warning - unable to load MPQ file [C:\Program Files\Warcraft III/War3Patch.mpq] - error code 2
+[Sun Apr  8 21:07:16 2018] [GHOST] adding ".cfg" to default map -> new default is [wormwar.cfg]
+[Sun Apr  8 21:07:16 2018] [CONFIG] loading file [mapcfgs/wormwar.cfg]
+[Sun Apr  8 21:07:16 2018] [UTIL] warning - unable to read file [maps/(12)WormWar.w3x]
+[Sun Apr  8 21:07:16 2018] [MAP] warning - unable to load MPQ file [maps/(12)WormWar.w3x]
+[Sun Apr  8 21:07:16 2018] [MAP] no map data available, using config file for map_size, map_info, map_crc, map_sha1
+[Sun Apr  8 21:07:16 2018] [MAP] no map data available, using config file for map_options, map_width, map_height, map_slot<x>, map_numplayers, map_numteams
+[Sun Apr  8 21:07:16 2018] [MAP] overriding calculated map_filter_type with config value map_filter_type = 0
+[Sun Apr  8 21:07:16 2018] [GHOST] warning - no battle.net connections found
+[Sun Apr  8 21:07:16 2018] [GHOST] GHost++ Version 17.1 (with MySQL support)
+[Sun Apr  8 21:07:16 2018] [GHOST] Loading slap phrases...
+[Sun Apr  8 21:07:16 2018] [GHOST] Slap phrase load failed!
+[Sun Apr  8 21:07:16 2018] [GHOST] Loading GeoIP data
+[Sun Apr  8 21:07:16 2018] [GHOST] GeoIP: error opening database
+[Sun Apr  8 21:07:16 2018] [GHOST] database error - error connecting to MySQL server
+[Sun Apr  8 21:07:16 2018] [GHOST] shutting down
+[Sun Apr  8 21:07:16 2018] [MYSQL] No connection yet, trying again (1)
+[Sun Apr  8 21:07:16 2018] [MYSQL] closing 0/2 idle MySQL connections
+[Sun Apr  8 21:07:16 2018] [MYSQL] 1 outstanding callables were never recovered
+[Sun Apr  8 21:07:21 2018] [GHOST] warning - 1 orphaned callables were leaked (this is not an error)

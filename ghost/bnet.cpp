@@ -1,20 +1,25 @@
 /*
 
-   Copyright [2008] [Trevor Hogan]
+	ent-ghost
+	Copyright [2011-2013] [Jack Lu]
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	This file is part of the ent-ghost source code.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	ent-ghost is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	ent-ghost source code is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+	You should have received a copy of the GNU General Public License
+	along with ent-ghost source code. If not, see <http://www.gnu.org/licenses/>.
+
+	ent-ghost is modified from GHost++ (http://ghostplusplus.googlecode.com/)
+	GHost++ is Copyright [2008] [Trevor Hogan]
 
 */
 
@@ -44,7 +49,7 @@ using namespace boost :: filesystem;
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nKeyOwnerName, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -53,8 +58,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_Protocol = new CBNETProtocol( );
 	m_BNLSClient = NULL;
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
-	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
-	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
 	m_Exiting = false;
 	m_Server = nServer;
 	string LowerServer = m_Server;
@@ -72,6 +75,8 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 		m_ServerAlias = "Europe";
 	else
 		m_ServerAlias = m_Server;
+
+	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
 
 	if( nPasswordHashType == "pvpgn" && !nBNLSServer.empty( ) )
 	{
@@ -107,6 +112,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LocaleID = nLocaleID;
 	m_UserName = nUserName;
 	m_UserPassword = nUserPassword;
+	m_KeyOwnerName = nKeyOwnerName;
 	m_FirstChannel = nFirstChannel;
 	m_RootAdmin = nRootAdmin;
 	transform( m_RootAdmin.begin( ), m_RootAdmin.end( ), m_RootAdmin.begin( ), (int(*)(int))tolower );
@@ -123,9 +129,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
 	m_LastOutPacketSize = 0;
-	m_FrequencyDelayTimes = 0;
 	m_LastAdminRefreshTime = GetTime( );
-	m_LastBanRefreshTime = GetTime( );
 	m_FirstConnect = true;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
@@ -135,6 +139,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
+	m_AuthFailCount = 0;
 }
 
 CBNET :: ~CBNET( )
@@ -151,57 +156,60 @@ CBNET :: ~CBNET( )
 
 	delete m_BNCSUtil;
 
-	for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+        for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 		delete *i;
 
-	for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+        for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 		delete *i;
 
 	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
-	
-	for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
+
+        for( vector<PairedAdminCount> :: iterator i = m_PairedAdminCounts.begin( ); i != m_PairedAdminCounts.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
+        for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
+        for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
+        for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
+        for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
-	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
-	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); ++i )
+        for( vector<PairedVPSCheck> :: iterator i = m_PairedVPSChecks.begin( ); i != m_PairedVPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
 	if( m_CallableAdminList )
 		m_GHost->m_Callables.push_back( m_CallableAdminList );
 
-	if( m_CallableBanList )
-		m_GHost->m_Callables.push_back( m_CallableBanList );
-
 	lock.unlock( );
-
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-		delete *i;
-	
-	bansLock.unlock( );
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
 {
 	return m_Protocol->GetUniqueName( );
+}
+
+uint32_t CBNET :: GetReconnectTime( )
+{
+	if( m_AuthFailCount == 0 )
+		return 90;
+	else
+	{
+		uint32_t Time = 180 + m_AuthFailCount * 90;
+
+		if( Time < 600 )
+		{
+			return Time;
+		}
+		else
+		{
+			return 600;
+		}
+	}
 }
 
 unsigned int CBNET :: SetFD( void *fd, void *send_fd, int *nfds )
@@ -211,7 +219,7 @@ unsigned int CBNET :: SetFD( void *fd, void *send_fd, int *nfds )
 	if( !m_Socket->HasError( ) && m_Socket->GetConnected( ) )
 	{
 		m_Socket->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
-		++NumFDs;
+                ++NumFDs;
 
 		if( m_BNLSClient )
 			NumFDs += m_BNLSClient->SetFD( fd, send_fd, nfds );
@@ -244,7 +252,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminCounts.erase( i );
 		}
 		else
-			++i;
+                        ++i;
 	}
 
 	for( vector<PairedAdminAdd> :: iterator i = m_PairedAdminAdds.begin( ); i != m_PairedAdminAdds.end( ); )
@@ -264,7 +272,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminAdds.erase( i );
 		}
 		else
-			++i;
+                        ++i;
 	}
 
 	for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); )
@@ -284,28 +292,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedAdminRemoves.erase( i );
 		}
 		else
-			++i;
-	}
-
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
-	{
-		if( i->second->GetReady( ) )
-		{
-			uint32_t Count = i->second->GetResult( );
-
-			if( Count == 0 )
-				QueueChatCommand( m_GHost->m_Language->ThereAreNoBannedUsers( m_Server ), i->first, !i->first.empty( ) );
-			else if( Count == 1 )
-				QueueChatCommand( m_GHost->m_Language->ThereIsBannedUser( m_Server ), i->first, !i->first.empty( ) );
-			else
-				QueueChatCommand( m_GHost->m_Language->ThereAreBannedUsers( m_Server, UTIL_ToString( Count ) ), i->first, !i->first.empty( ) );
-
-			m_GHost->m_DB->RecoverCallable( i->second );
-			delete i->second;
-			i = m_PairedBanCounts.erase( i );
-		}
-		else
-			++i;
+                        ++i;
 	}
 
 	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
@@ -313,10 +300,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
-			{
-				AddBan( i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
 				QueueChatCommand( m_GHost->m_Language->BannedUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
-			}
 			else
 				QueueChatCommand( m_GHost->m_Language->ErrorBanningUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
 
@@ -334,7 +318,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				RemoveBan( i->second->GetUser( ) );
 				QueueChatCommand( m_GHost->m_Language->UnbannedUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
 			}
 			else
@@ -355,7 +338,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			CDBGamePlayerSummary *GamePlayerSummary = i->second->GetResult( );
 
 			if( GamePlayerSummary )
-				QueueChatCommand( m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot.", i->first, !i->first.empty( ) );
 			else
 				QueueChatCommand( m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty( ) );
 
@@ -364,7 +347,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			i = m_PairedGPSChecks.erase( i );
 		}
 		else
-			++i;
+                        ++i;
 	}
 
 	for( vector<PairedDPSCheck> :: iterator i = m_PairedDPSChecks.begin( ); i != m_PairedDPSChecks.end( ); )
@@ -376,76 +359,108 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			if( DotAPlayerSummary )
 			{
 				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ) );
+										UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ),
+										UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ),
+										"DotA" );
 
 				QueueChatCommand( Summary, i->first, !i->first.empty( ) );
 			}
 			else
-				QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ), "DotA" ), i->first, !i->first.empty( ) );
 
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
 			i = m_PairedDPSChecks.erase( i );
 		}
 		else
+                        ++i;
+	}
+
+	for( vector<PairedVPSCheck> :: iterator i = m_PairedVPSChecks.begin( ); i != m_PairedVPSChecks.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			CDBVampPlayerSummary *VampPlayerSummary = i->second->GetResult( );
+
+			if( VampPlayerSummary )
+			{
+				double MinCommandCenter = VampPlayerSummary->GetMinCommandCenter( ) / 60.0;
+				double AvgCommandCenter = VampPlayerSummary->GetAvgCommandCenter( ) / 60.0;
+				double MinBase = VampPlayerSummary->GetMinBase( ) / 60.0;
+				double AvgBase = VampPlayerSummary->GetAvgBase( ) / 60.0;
+
+				string StrMinCC = UTIL_ToString(MinCommandCenter, 2);
+				string StrAvgCC = UTIL_ToString(AvgCommandCenter, 2);
+				string StrMinBase = UTIL_ToString(MinBase, 2);
+				string StrAvgBase = UTIL_ToString(AvgBase, 2);
+
+				if(MinCommandCenter <= 0) StrMinCC = "none";
+				if(AvgCommandCenter <= 0) StrAvgCC = "none";
+				if(MinBase <= 0) StrMinBase = "none";
+				if(AvgBase <= 0) StrAvgBase = "none";
+				QueueChatCommand( m_GHost->m_Language->HasPlayedVampGamesWithThisBot( i->second->GetName( ),
+						UTIL_ToString(VampPlayerSummary->GetTotalGames( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalHumanGames( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalVampGames( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalHumanWins( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalVampWins( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalHumanLosses( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalVampLosses( )),
+						UTIL_ToString(VampPlayerSummary->GetTotalVampKills( )),
+						StrMinCC,
+						StrAvgCC,
+						StrMinBase,
+						StrAvgBase),
+					i->first, !i->first.empty() );
+			}
+			else
+			{
+				QueueChatCommand( m_GHost->m_Language->HasntPlayedVampGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty() );
+			}
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedVPSChecks.erase( i );
+		}
+		else
 			++i;
 	}
 
-	// refresh the admin list every 5 minutes
+	// refresh the admin list every hour
 
-	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 300 )
+	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 3600 )
 		m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( m_Server );
 
 	if( m_CallableAdminList && m_CallableAdminList->GetReady( ) )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed admin list (" + UTIL_ToString( m_Admins.size( ) ) + " -> " + UTIL_ToString( m_CallableAdminList->GetResult( ).size( ) ) + " admins)" );
-		m_Admins = m_CallableAdminList->GetResult( );
+		if( m_CallableAdminList->GetError( ).empty( ) )
+			m_Admins = m_CallableAdminList->GetResult( );
+
 		m_GHost->m_DB->RecoverCallable( m_CallableAdminList );
 		delete m_CallableAdminList;
 		m_CallableAdminList = NULL;
 		m_LastAdminRefreshTime = GetTime( );
-	}
-
-	// refresh the ban list every 5 minutes
-
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 300 )
-		m_CallableBanList = m_GHost->m_DB->ThreadedBanList( m_Server );
-
-	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
-	{
-		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
-		boost::mutex::scoped_lock lock( m_BansMutex );
-		
-		for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-			delete *i;
-
-		m_Bans = m_CallableBanList->GetResult( );
-		lock.unlock( );
-		
-		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
-		delete m_CallableBanList;
-		m_CallableBanList = NULL;
-		m_LastBanRefreshTime = GetTime( );
 	}
 
 	// we return at the end of each if statement so we don't have to deal with errors related to the order of the if statements
@@ -525,22 +540,24 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		uint32_t WaitTicks = 0;
 
 		if( m_LastOutPacketSize < 10 )
-			WaitTicks = 1300;
+			WaitTicks = 2000;
 		else if( m_LastOutPacketSize < 30 )
-			WaitTicks = 3400;
+			WaitTicks = 4400;
 		else if( m_LastOutPacketSize < 50 )
-			WaitTicks = 3600;
+			WaitTicks = 5000;
+		else if( m_LastOutPacketSize < 70 )
+			WaitTicks = 5700;
 		else if( m_LastOutPacketSize < 100 )
-			WaitTicks = 3900;
+			WaitTicks = 6900;
+		else if( m_LastOutPacketSize < 150 )
+			WaitTicks = 7400;
+		else if( m_LastOutPacketSize < 200 )
+			WaitTicks = 7800;
 		else
-			WaitTicks = 5500;
-		
-		// add on frequency delay
-		
-		WaitTicks += m_FrequencyDelayTimes * 60;
+			WaitTicks = 8200;
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-		
+
 		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
 		{
 			if( m_OutPackets.size( ) > 7 )
@@ -549,17 +566,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->PutBytes( m_OutPackets.front( ) );
 			m_LastOutPacketSize = m_OutPackets.front( ).size( );
 			m_OutPackets.pop( );
-
-			// reset frequency delay (or increment it)
-			
-			if( m_FrequencyDelayTimes >= 100 || GetTicks( ) > m_LastOutPacketTicks + WaitTicks + 500 )
-				m_FrequencyDelayTimes = 0;
-			else
-				m_FrequencyDelayTimes++;
-			
 			m_LastOutPacketTicks = GetTicks( );
 		}
-		
+
 		packetsLock.unlock( );
 
 		// send a null packet every 60 seconds to detect disconnects
@@ -591,7 +600,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_LastOutPacketTicks = GetTicks( );
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-			
+
 			while( !m_OutPackets.empty( ) )
 				m_OutPackets.pop( );
 
@@ -613,7 +622,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 	}
 
-	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 ) )
+	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= GetReconnectTime( ) ) )
 	{
 		// attempt to connect to battle.net
 
@@ -648,7 +657,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP );
 			m_Socket->Connect( m_GHost->m_BindAddress, m_ServerIP, 6112 );
-			
+
 			m_ServerReconnectCount++;
 		}
 
@@ -749,7 +758,7 @@ void CBNET :: ProcessPackets( )
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] joining channel [" + m_FirstChannel + "]" );
 					m_InChat = true;
-					m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( m_FirstChannel ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_JOINCHANNEL( m_FirstChannel ) );
 				}
 
 				break;
@@ -809,9 +818,9 @@ void CBNET :: ProcessPackets( )
 						if( m_GHost->m_TFT )
 							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: The Frozen Throne" );
 						else
-							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: Reign of Chaos" );							
+							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: Reign of Chaos" );
 
-						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_GHost->m_TFT, m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), "GHost" ) );
+						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_GHost->m_TFT, m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), m_KeyOwnerName ) );
 
 						// the Warden seed is the first 4 bytes of the ROC key hash
 						// initialize the Warden handler
@@ -843,6 +852,7 @@ void CBNET :: ProcessPackets( )
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] cd keys accepted" );
 					m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON( );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
+
 					m_ServerReconnectCount = 0;
 				}
 				else
@@ -853,9 +863,19 @@ void CBNET :: ProcessPackets( )
 					{
 					case CBNETProtocol :: KR_ROC_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						m_AuthFailCount++;
+
+						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
+							UxReconnected( );
+
 						break;
 					case CBNETProtocol :: KR_TFT_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						m_AuthFailCount++;
+
+						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
+							UxReconnected( );
+
 						break;
 					case CBNETProtocol :: KR_OLD_GAME_VERSION:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting" );
@@ -865,6 +885,7 @@ void CBNET :: ProcessPackets( )
 						break;
 					default:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting" );
+						m_AuthFailCount++;
 						break;
 					}
 
@@ -900,6 +921,7 @@ void CBNET :: ProcessPackets( )
 				else
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - invalid username, disconnecting" );
+					m_AuthFailCount++;
 					m_Socket->Disconnect( );
 					delete Packet;
 					return;
@@ -914,15 +936,17 @@ void CBNET :: ProcessPackets( )
 
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon successful" );
 					m_LoggedIn = true;
+					m_AuthFailCount = 0;
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 				}
 				else
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - invalid password, disconnecting" );
+					m_AuthFailCount++;
 
 					// try to figure out if the user might be using the wrong logon type since too many people are confused by this
 
@@ -954,40 +978,37 @@ void CBNET :: ProcessPackets( )
 			case CBNETProtocol :: SID_FRIENDSLIST:
 				Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+                                for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 					delete *i;
 
 				m_Friends = Friends;
 				break;
 
-			case CBNETProtocol :: SID_CLANMEMBERLIST:
-				{
+			case CBNETProtocol :: SID_CLANMEMBERLIST: {
 				vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
 
-				for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+                                for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 					delete *i;
 
 				m_Clans = Clans;
 				break;
-				}
-			
-			case CBNETProtocol :: SID_CLANCREATIONINVITATION:
-				{
+			}
+
+			case CBNETProtocol :: SID_CLANCREATIONINVITATION: {
 				string ClanCreateName = m_Protocol->RECEIVE_SID_CLANCREATIONINVITATION( Packet->GetData( ) );
-				
+
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited (creation) to clan " + ClanCreateName + ", !accept to accept" );
 				m_LastInviteCreation = true;
 				break;
-				}
-			
-			case CBNETProtocol :: SID_CLANINVITATIONRESPONSE:
-				{
+			}
+
+			case CBNETProtocol :: SID_CLANINVITATIONRESPONSE: {
 				string ClanInviteName = m_Protocol->RECEIVE_SID_CLANINVITATIONRESPONSE( Packet->GetData( ) );
-				
+
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited to clan " + ClanInviteName + ", !accept to accept" );
 				m_LastInviteCreation = false;
 				break;
-				}
+			}
 			}
 		}
 
@@ -1020,7 +1041,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// note that this means you can whisper "spoofcheck" even in a public game to manually spoofcheck if the /whois fails
 
 		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-		
+
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
 			bool Success = false;
@@ -1029,13 +1050,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			SpoofAdd.name = User;
 			SpoofAdd.sendMessage = false;
 			SpoofAdd.failMessage = string( );
-			
+
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
 			{
 				Success = true;
 				SpoofAdd.sendMessage = true;
 			}
-			
+
 			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 			{
 				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
@@ -1051,10 +1072,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					if( Tokens.size( ) >= 3 )
 						SpoofAdd.name = Tokens[2];
 				}
-				
+
 				Success = true;
 			}
-			
+
 			if( Success )
 			{
 				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
@@ -1062,7 +1083,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				spoofLock.unlock( );
 			}
 		}
-		
+
 		lock.unlock( );
 
 		// handle bot commands
@@ -1071,7 +1092,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			QueueChatCommand( m_GHost->m_Language->CommandTrigger( string( 1, m_CommandTrigger ) ), User, Whisper );
 		else if( !Message.empty( ) && Message[0] == m_CommandTrigger )
 		{
-			BotCommand( Message, User, Whisper, false );
+            BotCommand( Message, User, Whisper, false );
 		}
 	}
 	else if( Event == CBNETProtocol :: EID_CHANNEL )
@@ -1099,13 +1120,14 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		// handle spoof checking for current game
 		// this case covers whois results which are used when hosting a public game (we send out a "/whois [player]" for each player)
 		// at all times you can still /w the bot with "spoofcheck" to manually spoof check
-		
+
 		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-		
+
 		if( m_GHost->m_CurrentGame )
 		{
 			string FailMessage;
-			
+
+
 			if( Message.find( "is away" ) != string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofPossibleIsAway( UserName );
 			else if( Message.find( "is unavailable" ) != string :: npos )
@@ -1118,7 +1140,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				FailMessage = m_GHost->m_Language->SpoofDetectedIsNotInGame( UserName );
 			else if( Message.find( "is using Warcraft III The Frozen Throne in a private channel" ) != string :: npos )
 				FailMessage = m_GHost->m_Language->SpoofDetectedIsInPrivateChannel( UserName );
-			
+
 			if( !FailMessage.empty( ) )
 			{
 				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
@@ -1126,7 +1148,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				sayLock.unlock( );
 			}
 
-			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
+			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos || Message.find( "is using Warcraft III in game" ) != string :: npos || Message.find( "is using Warcraft III  in game" ) != string :: npos )
 			{
 				// check both the current game name and the last game name against the /whois response
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
@@ -1140,13 +1162,13 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
 					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
-				
+
 				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
 				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
 				spoofLock.unlock( );
 			}
 		}
-		
+
 		lock.unlock( );
 	}
 	else if( Event == CBNETProtocol :: EID_ERROR )
@@ -1159,6 +1181,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 }
 
 void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceRoot ) {
+	// don't handle commands if bot is disabled
+	if( m_GHost->m_DisableBot )
+		return;
+
 	// extract the command trigger, the command, and the payload
 	// e.g. "!say hello world" -> command: "say", payload: "hello world"
 
@@ -1184,19 +1210,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		* ADMIN COMMANDS *
 		******************/
 
-		//
-		// !ACCEPT
-		//
-
-		if( Command == "accept" )
-		{
-			if( IsRootAdmin( User ) || ForceRoot )
-				SendClanAcceptInvite( true );
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
+        //
 		// !ADDADMIN
 		//
 
@@ -1218,8 +1232,15 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !BAN
 		//
 
-		else if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
+		else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "cban" || Command == "kick" ) && !Payload.empty( ) )
 		{
+			uint32_t BanDuration = 3600 * m_GHost->m_BanDuration;
+
+			if( Command == "pban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+			else if( Command == "tban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+			else if( Command == "wban" ) BanDuration = 3600 * m_GHost->m_WBanDuration;
+			else if( Command == "cban" ) BanDuration = 3600 * m_GHost->m_CBanDuration;
+
 			// extract the victim and the reason
 			// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
 
@@ -1238,10 +1259,26 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					Reason = Reason.substr( Start );
 			}
 
-			if( IsBannedName( Victim ) )
-				QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
-			else
-				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason ) ) );
+			if( Command != "kick" )
+				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, BanDuration, "ttr.cloud" ) ) );
+
+			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+
+			if( m_GHost->m_CurrentGame )
+			{
+				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+				m_GHost->m_CurrentGame->m_DoSayGames.push_back( "/kick " + Victim );
+				sayLock.unlock( );
+			}
+
+			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+			{
+				boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
+				(*i)->m_DoSayGames.push_back( "/kick " + Victim );
+				sayLock.unlock( );
+			}
+			
+			lock.unlock( );
 		}
 
 		//
@@ -1433,20 +1470,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !CHECKBAN
-		//
-
-		else if( Command == "checkban" && !Payload.empty( ) )
-		{
-			CDBBan *Ban = IsBannedName( Payload );
-
-			if( Ban )
-				QueueChatCommand( m_GHost->m_Language->UserWasBannedOnByBecause( m_Server, Payload, Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ), User, Whisper );
-			else
-				QueueChatCommand( m_GHost->m_Language->UserIsNotBanned( m_Server, Payload ), User, Whisper );
-		}
-
-		//
 		// !COUNTADMINS
 		//
 
@@ -1459,18 +1482,19 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !COUNTBANS
-		//
-
-		else if( Command == "countbans" )
-			m_PairedBanCounts.push_back( PairedBanCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanCount( m_Server ) ) );
-
-		//
 		// !DBSTATUS
 		//
 
 		else if( Command == "dbstatus" )
 			QueueChatCommand( m_GHost->m_DB->GetStatus( ), User, Whisper );
+
+		//
+		// !DELBAN
+		// !UNBAN
+		//
+
+		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload, "" ) ) );
 
 		//
 		// !DELADMIN
@@ -1488,14 +1512,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
-
-		//
-		// !DELBAN
-		// !UNBAN
-		//
-
-		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 		//
 		// !DISABLE
@@ -1556,31 +1572,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !EXIT
-		// !QUIT
-		//
-
-		else if( Command == "exit" || Command == "quit" )
-		{
-			if( IsRootAdmin( User ) || ForceRoot )
-			{
-				if( Payload == "nice" )
-					m_GHost->m_ExitingNice = true;
-				else if( Payload == "force" )
-					m_Exiting = true;
-				else
-				{
-					if( m_GHost->m_CurrentGame || !m_GHost->m_Games.empty( ) )
-						QueueChatCommand( m_GHost->m_Language->AtLeastOneGameActiveUseForceToShutdown( ), User, Whisper );
-					else
-						m_Exiting = true;
-				}
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
 		// !GETCLAN
 		//
 
@@ -1606,15 +1597,15 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "getgame" && !Payload.empty( ) )
 		{
-			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-			
 			uint32_t GameNumber = UTIL_ToUInt32( Payload ) - 1;
+
+			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 
 			if( GameNumber < m_GHost->m_Games.size( ) )
 				QueueChatCommand( m_GHost->m_Language->GameNumberIs( Payload, m_GHost->m_Games[GameNumber]->GetDescription( ) ), User, Whisper );
 			else
 				QueueChatCommand( m_GHost->m_Language->GameNumberDoesntExist( Payload ), User, Whisper );
-			
+
 			lock.unlock( );
 		}
 
@@ -1625,45 +1616,23 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		else if( Command == "getgames" )
 		{
 			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-			
+
 			if( m_GHost->m_CurrentGame )
 				QueueChatCommand( m_GHost->m_Language->GameIsInTheLobby( m_GHost->m_CurrentGame->GetDescription( ), UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
 			else
 				QueueChatCommand( m_GHost->m_Language->ThereIsNoGameInTheLobby( UTIL_ToString( m_GHost->m_Games.size( ) ), UTIL_ToString( m_GHost->m_MaxGames ) ), User, Whisper );
-			
-			lock.unlock( );
-		}
-		
-		//
-		// !GRUNT
-		//
 
-		if( Command == "grunt"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status grunt done by " + User );
+			lock.unlock( );
 		}
 
 		//
 		// !HOSTSG
 		//
 
-		else if( Command == "hostsg" && !Payload.empty( ) )
+                        else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
 
-		//
-		// !INVITE
-		//
-
-		if( Command == "invite" && !Payload.empty( ) )
-		{
-			SendClanInvitation( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] inviting clan member " + Payload + " done by " + User );
-		}
-
-		//
+        //
 		// !LOAD (load config file)
 		//
 
@@ -1692,7 +1661,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 						path LastMatch;
 						uint32_t Matches = 0;
 
-						for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
+                                                        for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 						{
 							string FileName = i->path( ).filename( ).string( );
 							string Stem = i->path( ).stem( ).string( );
@@ -1702,7 +1671,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
 							{
 								LastMatch = i->path( );
-								++Matches;
+                                                                        ++Matches;
 
 								if( FoundMapConfigs.empty( ) )
 									FoundMapConfigs = i->path( ).filename( ).string( );
@@ -1803,7 +1772,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 						path LastMatch;
 						uint32_t Matches = 0;
 
-						for( directory_iterator i( MapPath ); i != EndIterator; ++i )
+                                                        for( directory_iterator i( MapPath ); i != EndIterator; ++i )
 						{
 							string FileName = i->path( ).filename( ).string( );
 							string Stem = i->path( ).stem( ).string( );
@@ -1813,7 +1782,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
 							{
 								LastMatch = i->path( );
-								++Matches;
+                                                                        ++Matches;
 
 								if( FoundMaps.empty( ) )
 									FoundMaps = i->path( ).filename( ).string( );
@@ -1854,27 +1823,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
 				}
 			}
-		}
-
-		//
-		// !MOTD
-		//
-
-		if( Command == "motd"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
-		{
-			SendClanSetMotd( Payload );
-			CONSOLE_Print( "[GHOST] setting motd to " + Payload );
-		}
-
-		//
-		// !PEON
-		//
-
-		if( Command == "peon"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_PARTIAL_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status peon done by " + User );
 		}
 
 		//
@@ -1934,6 +1882,65 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
+		// !MB (host public/private game with set map/config and by other player)
+		//
+
+		else if( Command == "mb" && !Payload.empty( ) )
+		{
+			string GameType;
+			string MapType;
+			string Map;
+			string Owner;
+			string GameName;
+
+			stringstream SS;
+			SS << Payload;
+			SS >> GameType;
+
+			if( ( GameType == "u" || GameType == "r" ) && !SS.eof( ) )
+			{
+				if( GameType == "u" )
+					GameType = "pubby";
+				else
+					GameType = "privby";
+
+				SS >> MapType;
+
+				if( ( MapType == "m" || MapType == "l" ) && !SS.eof( ) )
+				{
+					if( MapType == "m" )
+						MapType = "map";
+					else
+						MapType = "load";
+
+					SS >> Map;
+
+					//change pipes in map to spaces
+					// this is done to avoid problems with map and then gamename
+					UTIL_Replace( Map, "|", " " );
+
+					if( !SS.eof( ) )
+					{
+						SS >> Owner;
+
+						if( !SS.eof( ) )
+						{
+							getline( SS, GameName );
+							string :: size_type Start = GameName.find_first_not_of( " " );
+
+							if( Start != string :: npos )
+								GameName = GameName.substr( Start );
+
+							//execute secondary commands
+							BotCommand( m_CommandTrigger + MapType + " " + Map, User, Whisper, ForceRoot );
+							BotCommand( m_CommandTrigger + GameType + " " + Owner + " " + GameName, User, Whisper, ForceRoot );
+						}
+					}
+				}
+			}
+		}
+
+		//
 		// !RELOAD
 		//
 
@@ -1949,28 +1956,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !REMOVE
-		//
-
-		if( Command == "remove" && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
-		{
-			SendClanRemoveMember( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] removing clan member " + Payload + " done by " + User );
-		}
-
-		//
 		// !SAY
 		//
 
 		else if( Command == "say" && !Payload.empty( ) )
-		{
-			if( IsRootAdmin( User ) || ForceRoot ) {
-				QueueChatCommand( Payload );
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
+			QueueChatCommand( Payload );
 
 		//
 		// !SAYGAMES
@@ -1981,7 +1971,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			if( IsRootAdmin( User ) || ForceRoot )
 			{
 				boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-		
+
 				if( m_GHost->m_CurrentGame )
 				{
 					boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
@@ -1995,22 +1985,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					(*i)->m_DoSayGames.push_back( Payload );
 					sayLock.unlock( );
 				}
-		
+
 				lock.unlock( );
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
-		// !SHAMAN
-		//
-
-		if( Command == "shaman"  && !Payload.empty( ) && ( IsRootAdmin( User ) || ForceRoot ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_OFFICER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status shaman done by " + User );
 		}
 
 		//
@@ -2020,18 +1999,25 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		else if( Command == "unhost" )
 		{
 			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
-			
+
 			if( m_GHost->m_CurrentGame )
 			{
 				if( m_GHost->m_CurrentGame->GetCountDownStarted( ) )
 					QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameCountdownStarted( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
 
-				QueueChatCommand( m_GHost->m_Language->UnhostingGame( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
-				m_GHost->m_CurrentGame->SetExiting( true );
+				// if the game owner is still in the game only allow the root admin to unhost the game
+
+				else if( m_GHost->m_CurrentGame->GetPlayerFromName( m_GHost->m_CurrentGame->GetOwnerName( ), false ) && !IsRootAdmin( User ) && !ForceRoot )
+					QueueChatCommand( m_GHost->m_Language->CantUnhostGameOwnerIsPresent( m_GHost->m_CurrentGame->GetOwnerName( ) ), User, Whisper );
+				else
+				{
+					QueueChatCommand( m_GHost->m_Language->UnhostingGame( m_GHost->m_CurrentGame->GetDescription( ) ), User, Whisper );
+					m_GHost->m_CurrentGame->SetExiting( true );
+				}
 			}
 			else
 				QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
-			
+
 			lock.unlock( );
 		}
 
@@ -2059,7 +2045,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	// in some cases the queue may be full of legitimate messages but we don't really care if the bot ignores one of these commands once in awhile
 	// e.g. when several users join a game at the same time and cause multiple /whois messages to be queued at once
 
-	if( IsAdmin( User ) || IsRootAdmin( User ) || ForceRoot || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
+	if( IsAdmin( User ) || IsRootAdmin( User ) || ( m_PublicCommands && m_OutPackets.size( ) <= 3 ) )
 	{
 		//
 		// !STATS
@@ -2075,12 +2061,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, string( ) ) ) );
 		}
 
 		//
 		// !STATSDOTA
-		// !SD
 		//
 
 		else if( Command == "statsdota" || Command == "sd" )
@@ -2093,7 +2078,40 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, string( ), "dota" ) ) );
+		}
+
+		//
+		// !VAMPSTATS
+		//
+
+		else if( Command == "vampstats" || Command == "vs" )
+		{
+			string StatsUser = User;
+
+			if( !Payload.empty( ) )
+				StatsUser = Payload;
+
+			// check for potential abuse
+
+			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
+				m_PairedVPSChecks.push_back( PairedVPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedVampPlayerSummaryCheck( StatsUser ) ) );
+		}
+
+        //
+        // !SLAP
+        //
+
+		else if( (Command == "slap" )&& !Payload.empty() && !m_GHost->m_SlapPhrases.empty() )
+		{
+			//pick a phrase
+			uint32_t numPhrases = m_GHost->m_SlapPhrases.size();
+			uint32_t randomPhrase = rand() % numPhrases;
+
+			string phrase = m_GHost->m_SlapPhrases[randomPhrase];
+			uint32_t nameIndex = phrase.find_first_of("[") + 1;
+			if(!Whisper)
+				QueueChatCommand("[" + User + "] " + phrase.insert(nameIndex, Payload), User, Whisper);
 		}
 
 		//
@@ -2110,71 +2128,78 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 	}
 }
 
+void CBNET :: UxReconnected( )
+{
+	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedReconUpdate( m_HostCounterID, GetReconnectTime( ) ) );
+	lock.unlock( );
+}
+
 void CBNET :: SendJoinChannel( string channel )
 {
 	if( m_LoggedIn && m_InChat )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
 }
 
 void CBNET :: SendGetFriendsList( )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_FRIENDSLIST( ) );
 }
 
 void CBNET :: SendGetClanList( )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+}
+
+void CBNET :: QueueEnterChat( )
+{
+	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+
+	if( m_LoggedIn )
+		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
+
+	packetsLock.unlock( );
 }
 
 void CBNET :: SendClanInvitation( string accountName )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
 }
 
 void CBNET :: SendClanRemoveMember( string accountName )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
 }
 
 void CBNET :: SendClanChangeRank( string accountName, CBNETProtocol :: RankCode rank )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
 }
 
 void CBNET :: SendClanSetMotd( string motd )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
 }
 
 void CBNET :: SendClanAcceptInvite( bool accept )
 {
 	if( m_LoggedIn ) {
 		if( m_LastInviteCreation )
-			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCREATIONINVITATION( accept ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_CLANCREATIONINVITATION( accept ) );
 		else
-			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATIONRESPONSE( accept ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_CLANINVITATIONRESPONSE( accept ) );
 	}
-}
-
-void CBNET :: QueueEnterChat( )
-{
-	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-	
-	if( m_LoggedIn )
-		m_OutPackets.push( m_Protocol->SEND_SID_ENTERCHAT( ) );
-	
-	packetsLock.unlock( );
 }
 
 void CBNET :: QueueChatCommand( string chatCommand )
 {
-	if( chatCommand.empty( ) )
+	if( chatCommand.empty( ) || m_GHost->m_DisableBot )
 		return;
 
 	if( m_LoggedIn )
@@ -2186,7 +2211,7 @@ void CBNET :: QueueChatCommand( string chatCommand )
 			chatCommand = chatCommand.substr( 0, 255 );
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-		
+
 		if( m_OutPackets.size( ) > 10 )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
 		else
@@ -2194,7 +2219,7 @@ void CBNET :: QueueChatCommand( string chatCommand )
 			CONSOLE_Print( "[QUEUED: " + m_ServerAlias + "] " + chatCommand );
 			m_OutPackets.push( m_Protocol->SEND_SID_CHATCOMMAND( chatCommand ) );
 		}
-		
+
 		packetsLock.unlock( );
 	}
 }
@@ -2233,7 +2258,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 	{
 		BYTEARRAY UniqueName = m_Protocol->GetUniqueName( );
 		hostName = string( UniqueName.begin( ), UniqueName.end( ) );
-	}
+    }
 
 	if( m_LoggedIn && map )
 	{
@@ -2265,20 +2290,18 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 7 );
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-			
+
 			if( m_GHost->m_Reconnect )
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
 			else
 				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), UTIL_CreateByteArray( (uint16_t)0, false ), UTIL_CreateByteArray( (uint16_t)0, false ), gameName, hostName, upTime, "Save\\Multiplayer\\" + saveGame->GetFileNameNoPath( ), saveGame->GetMagicNumber( ), map->GetMapSHA1( ), FixedHostCounter ) );
-			
+
 			packetsLock.unlock( );
 		}
 		else
 		{
 			uint32_t MapGameType = map->GetMapGameType( );
 			MapGameType |= MAPGAMETYPE_UNKNOWN0;
-			//Apply overwrite if not equal to 0
-			MapGameType = ( m_GHost->m_MapGameType != 0 ) ? MapGameType : m_GHost->m_MapGameType;
 
 			if( state == GAME_PRIVATE )
 				MapGameType |= MAPGAMETYPE_PRIVATEGAME;
@@ -2292,14 +2315,19 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			MapHeight.push_back( 192 );
 			MapHeight.push_back( 7 );
 
+            //MapGameType = 21569664;
+            MapGameType = m_GHost->m_MapGameType;
+
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-			
-			if( m_GHost->m_Reconnect )
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
-			else
-				m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
-			
-			packetsLock.unlock( );
+
+			if( m_GHost->m_Reconnect ) {
+			      m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), MapWidth, MapHeight, gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+			}
+			else {
+			      m_OutPackets.push( m_Protocol->SEND_SID_STARTADVEX3( state, UTIL_CreateByteArray( MapGameType, false ), map->GetMapGameFlags( ), map->GetMapWidth( ), map->GetMapHeight( ), gameName, hostName, upTime, map->GetMapPath( ), map->GetMapCRC( ), map->GetMapSHA1( ), FixedHostCounter ) );
+            }
+
+            packetsLock.unlock( );
 		}
 	}
 }
@@ -2307,10 +2335,10 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 void CBNET :: QueueGameUncreate( )
 {
 	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-	
+
 	if( m_LoggedIn )
 		m_OutPackets.push( m_Protocol->SEND_SID_STOPADV( ) );
-	
+
 	packetsLock.unlock( );
 }
 
@@ -2320,7 +2348,7 @@ void CBNET :: UnqueuePackets( unsigned char type )
 	uint32_t Unqueued = 0;
 
 	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-	
+
 	while( !m_OutPackets.empty( ) )
 	{
 		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
@@ -2329,13 +2357,13 @@ void CBNET :: UnqueuePackets( unsigned char type )
 		m_OutPackets.pop( );
 
 		if( Packet.size( ) >= 2 && Packet[1] == type )
-			++Unqueued;
+                        ++Unqueued;
 		else
 			Packets.push( Packet );
 	}
 
 	m_OutPackets = Packets;
-	
+
 	packetsLock.unlock( );
 
 	if( Unqueued > 0 )
@@ -2353,7 +2381,7 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 	uint32_t Unqueued = 0;
 
 	boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
-	
+
 	while( !m_OutPackets.empty( ) )
 	{
 		// todotodo: it's very inefficient to have to copy all these packets while searching the queue
@@ -2362,13 +2390,13 @@ void CBNET :: UnqueueChatCommand( string chatCommand )
 		m_OutPackets.pop( );
 
 		if( Packet == PacketToUnqueue )
-			++Unqueued;
+                        ++Unqueued;
 		else
 			Packets.push( Packet );
 	}
 
 	m_OutPackets = Packets;
-	
+
 	packetsLock.unlock( );
 
 	if( Unqueued > 0 )
@@ -2384,7 +2412,7 @@ bool CBNET :: IsAdmin( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 
-	for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); ++i )
+        for( vector<string> :: iterator i = m_Admins.begin( ); i != m_Admins.end( ); ++i )
 	{
 		if( *i == name )
 			return true;
@@ -2418,53 +2446,10 @@ bool CBNET :: IsRootAdmin( string name )
 	return false;
 }
 
-CDBBan *CBNET :: IsBannedName( string name )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-
-	// todotodo: optimize this - maybe use a map?
-	
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-	{
-		if( (*i)->GetName( ) == name )
-			return *i;
-	}
-	
-	bansLock.unlock( );
-	return NULL;
-}
-
-CDBBan *CBNET :: IsBannedIP( string ip )
-{
-	// todotodo: optimize this - maybe use a map?
-	
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-	{
-		if( (*i)->GetIP( ) == ip )
-			return *i;
-	}
-
-	bansLock.unlock( );
-	return NULL;
-}
-
 void CBNET :: AddAdmin( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	m_Admins.push_back( name );
-}
-
-void CBNET :: AddBan( string name, string ip, string gamename, string admin, string reason )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( m_Server, name, ip, "N/A", gamename, admin, reason ) );
-	lock.unlock( );
 }
 
 void CBNET :: RemoveAdmin( string name )
@@ -2476,32 +2461,15 @@ void CBNET :: RemoveAdmin( string name )
 		if( *i == name )
 			i = m_Admins.erase( i );
 		else
-			++i;
+                        ++i;
 	}
-}
-
-void CBNET :: RemoveBan( string name )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
-	{
-		if( (*i)->GetName( ) == name )
-			i = m_Bans.erase( i );
-		else
-			++i;
-	}
-	
-	lock.unlock( );
 }
 
 void CBNET :: HoldFriends( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
+                for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); ++i )
 			game->AddToReserved( (*i)->GetAccount( ) );
 	}
 }
@@ -2510,7 +2478,7 @@ void CBNET :: HoldClan( CBaseGame *game )
 {
 	if( game )
 	{
-		for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
+                for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); ++i )
 			game->AddToReserved( (*i)->GetName( ) );
 	}
 }
