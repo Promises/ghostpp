@@ -26,143 +26,6 @@
 #ifndef GHOSTDBMYSQL_H
 #define GHOSTDBMYSQL_H
 
-/**************
- *** SCHEMA ***
- **************
-
-CREATE TABLE admins (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	server VARCHAR(100) NOT NULL
-)
-
-CREATE TABLE bans (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	server VARCHAR(100) NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	ip VARCHAR(15) NOT NULL,
-	date DATETIME NOT NULL,
-	gamename VARCHAR(31) NOT NULL,
-	admin VARCHAR(15) NOT NULL,
-	reason VARCHAR(255) NOT NULL
-)
-
-CREATE TABLE games (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	server VARCHAR(100) NOT NULL,
-	map VARCHAR(100) NOT NULL,
-	datetime DATETIME NOT NULL,
-	gamename VARCHAR(31) NOT NULL,
-	ownername VARCHAR(15) NOT NULL,
-	duration INT NOT NULL,
-	gamestate INT NOT NULL,
-	creatorname VARCHAR(15) NOT NULL,
-	creatorserver VARCHAR(100) NOT NULL
-)
-
-CREATE TABLE gameplayers (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	gameid INT NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	ip VARCHAR(15) NOT NULL,
-	spoofed INT NOT NULL,
-	reserved INT NOT NULL,
-	loadingtime INT NOT NULL,
-	`left` INT NOT NULL,
-	leftreason VARCHAR(100) NOT NULL,
-	team INT NOT NULL,
-	colour INT NOT NULL,
-	spoofedrealm VARCHAR(100) NOT NULL,
-	INDEX( gameid )
-)
-
-CREATE TABLE dotagames (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	gameid INT NOT NULL,
-	winner INT NOT NULL,
-	min INT NOT NULL,
-	sec INT NOT NULL
-)
-
-CREATE TABLE dotaplayers (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	gameid INT NOT NULL,
-	colour INT NOT NULL,
-	kills INT NOT NULL,
-	deaths INT NOT NULL,
-	creepkills INT NOT NULL,
-	creepdenies INT NOT NULL,
-	assists INT NOT NULL,
-	gold INT NOT NULL,
-	neutralkills INT NOT NULL,
-	item1 CHAR(4) NOT NULL,
-	item2 CHAR(4) NOT NULL,
-	item3 CHAR(4) NOT NULL,
-	item4 CHAR(4) NOT NULL,
-	item5 CHAR(4) NOT NULL,
-	item6 CHAR(4) NOT NULL,
-	hero CHAR(4) NOT NULL,
-	newcolour INT NOT NULL,
-	towerkills INT NOT NULL,
-	raxkills INT NOT NULL,
-	courierkills INT NOT NULL,
-	INDEX( gameid, colour )
-)
-
-CREATE TABLE downloads (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	map VARCHAR(100) NOT NULL,
-	mapsize INT NOT NULL,
-	datetime DATETIME NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	ip VARCHAR(15) NOT NULL,
-	spoofed INT NOT NULL,
-	spoofedrealm VARCHAR(100) NOT NULL,
-	downloadtime INT NOT NULL
-)
-
-CREATE TABLE scores (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	category VARCHAR(25) NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	server VARCHAR(100) NOT NULL,
-	score REAL NOT NULL
-)
-
-CREATE TABLE w3mmdplayers (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	category VARCHAR(25) NOT NULL,
-	gameid INT NOT NULL,
-	pid INT NOT NULL,
-	name VARCHAR(15) NOT NULL,
-	flag VARCHAR(32) NOT NULL,
-	leaver INT NOT NULL,
-	practicing INT NOT NULL
-)
-
-CREATE TABLE w3mmdvars (
-	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	botid INT NOT NULL,
-	gameid INT NOT NULL,
-	pid INT NOT NULL,
-	varname VARCHAR(25) NOT NULL,
-	value_int INT DEFAULT NULL,
-	value_real REAL DEFAULT NULL,
-	value_string VARCHAR(100) DEFAULT NULL
-)
-
- **************
- *** SCHEMA ***
- **************/
-
 //
 // CGHostDBMySQL
 //
@@ -194,6 +57,7 @@ public:
 	virtual void CreateThread( CBaseCallable *callable );
 	virtual CCallableAdminCount *ThreadedAdminCount( string server );
 	virtual CCallableAdminCheck *ThreadedAdminCheck( string server, string user );
+	virtual CCallableAliasCheck *ThreadedAliasCheck( string ip );
 	virtual CCallableAdminAdd *ThreadedAdminAdd( string server, string user );
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
@@ -205,17 +69,22 @@ public:
 	virtual CCallableSpoofList *ThreadedSpoofList( );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList(  );
-	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
-	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
+    virtual CCallableAnnounceList *ThreadedAnnounceList(  );
+	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype, vector<ChatEvent> lobbylog, vector<ChatEvent> gamelog, string uuid );
+	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
+	virtual CCallableStreamGameUpdate *ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
+	virtual CCallableStreamPlayerUpdate *ThreadedStreamPlayerUpdate( string name, string gamename );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype );
 	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name, string realm );
 	virtual CCallableVampPlayerSummaryCheck *ThreadedVampPlayerSummaryCheck( string name );
-	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType );
-	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType );
+	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType, vector<Event> events );
+	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType, uint32_t level, uint32_t s, uint32_t twk, uint32_t trk, uint32_t qk, uint32_t rk, bool fb, bool fd, uint32_t ks, uint32_t d, uint32_t mk, uint32_t u, uint32_t ws, uint32_t mok, uint32_t g, uint32_t bg, uint32_t ms, string spell1, string spell2, string spell3, string spell4, string spell5, string spell6 );
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name, string realm, string saveType );
 	virtual CCallableTreePlayerSummaryCheck *ThreadedTreePlayerSummaryCheck( string name, string realm );
+	virtual CCallableIslandPlayerSummaryCheck *ThreadedIslandPlayerSummaryCheck( string name, string realm );
 	virtual CCallableSnipePlayerSummaryCheck *ThreadedSnipePlayerSummaryCheck( string name, string realm );
 	virtual CCallableShipsPlayerSummaryCheck *ThreadedShipsPlayerSummaryCheck( string name, string realm );
+	virtual CCallableRVSPlayerSummaryCheck *ThreadedRVSPlayerSummaryCheck( string name, string realm );
 	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
@@ -223,11 +92,14 @@ public:
 	virtual CCallableGetTournament *ThreadedGetTournament( string gamename );
 	virtual CCallableTournamentChat *ThreadedTournamentChat( uint32_t chatid, string message );
 	virtual CCallableTournamentUpdate *ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status );
+	virtual CCallableAdminCommand *ThreadedAdminCommand( string admin, string command, string description, string gamename );
 	virtual CCallableConnectCheck *ThreadedConnectCheck( string name, uint32_t sessionkey );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType );
+	virtual CCallableVerifyUser *ThreadedVerifyUser( string name, string token, string realm );
+    virtual CCallableBotStatusUpdate *ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename );
 
 	// other database functions
 
@@ -240,6 +112,7 @@ public:
 
 uint32_t MySQLAdminCount( void *conn, string *error, uint32_t botid, string server );
 bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, string user );
+string MySQLAliasCheck( void *conn, string *error, uint32_t botid, string ip );
 bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, string user );
 bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server, string user );
 vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string server );
@@ -251,17 +124,22 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, str
 map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid );
 void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, uint32_t seconds );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
-uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
-uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
+vector<string> MySQLAnnounceList( void *conn, string *error, uint32_t botid );
+uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype, vector<ChatEvent> lobbylog, vector<ChatEvent> gamelog, string uuid );
+uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
+void MySQLStreamGameUpdate( void *conn, string *error, uint32_t botid, string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
+void MySQLStreamPlayerUpdate( void *conn, string *error, uint32_t botid, string name, string gamename );
 uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype );
 CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
 CDBVampPlayerSummary *MySQLVampPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name );
-uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType );
-uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType );
+uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType, vector<Event> events );
+uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType, uint32_t level, uint32_t s, uint32_t twk, uint32_t trk, uint32_t qk, uint32_t rk, bool fb, bool fd, uint32_t ks, uint32_t d, uint32_t mk, uint32_t u, uint32_t ws, uint32_t mok, uint32_t g, uint32_t bg, uint32_t ms, string spell1, string spell2, string spell3, string spell4, string spell5, string spell6 );
 CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm, string saveType );
 CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
+CDBIslandPlayerSummary *MySQLIslandPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
 CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
 CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
+CDBRVSPlayerSummary *MySQLRVSPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
 CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm, string category );
 bool MySQLDownloadAdd( void *conn, string *error, uint32_t botid, string map, uint32_t mapsize, string name, string realm, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server );
@@ -269,11 +147,14 @@ uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string cat
 vector<string> MySQLGetTournament( void *conn, string *error, uint32_t botid, string gamename );
 void MySQLTournamentChat( void *conn, string *error, uint32_t botid, uint32_t chatid, string message );
 void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, string gamename, uint32_t status );
+void MySQLAdminCommand( void *conn, string *error, uint32_t botid, string admin, string command, string description, string gamename );
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey );
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,double> var_reals, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,string> var_strings, string saveType );
+uint32_t VerifyUser( void *conn, string *error, uint32_t botid, string name, string token, string realm );
+bool BotStatusUpdate( void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename );
 
 //
 // MySQL Callables
@@ -317,6 +198,17 @@ class CMySQLCallableAdminCheck : public CCallableAdminCheck, public CMySQLCallab
 public:
 	CMySQLCallableAdminCheck( string nServer, string nUser, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAdminCheck( nServer, nUser ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableAdminCheck( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableAliasCheck : public CCallableAliasCheck, public CMySQLCallable
+{
+public:
+	CMySQLCallableAliasCheck( string nIP, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAliasCheck( nIP ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableAliasCheck( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
@@ -422,6 +314,17 @@ public:
 	virtual void Close( ) { CMySQLCallable :: Close( ); }
 };
 
+class CMySQLCallableAnnounceList : public CCallableAnnounceList, public CMySQLCallable
+{
+public:
+    CMySQLCallableAnnounceList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+    virtual ~CMySQLCallableAnnounceList( ) { }
+
+    virtual void operator( )( );
+    virtual void Init( ) { CMySQLCallable :: Init( ); }
+    virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
 class CMySQLCallableReconUpdate : public CCallableReconUpdate, public CMySQLCallable
 {
 public:
@@ -436,7 +339,7 @@ public:
 class CMySQLCallableGameAdd : public CCallableGameAdd, public CMySQLCallable
 {
 public:
-	CMySQLCallableGameAdd( string nServer, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, string nCreatorServer, string nSaveType, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableGameAdd( nServer, nMap, nGameName, nOwnerName, nDuration, nGameState, nCreatorName, nCreatorServer, nSaveType ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	CMySQLCallableGameAdd( string nServer, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, string nCreatorServer, string nSaveType, vector<ChatEvent> nLobbyLog, vector<ChatEvent> nGameLog, string nUUID, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableGameAdd( nServer, nMap, nGameName, nOwnerName, nDuration, nGameState, nCreatorName, nCreatorServer, nSaveType, nLobbyLog, nGameLog, nUUID ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableGameAdd( ) { }
 
 	virtual void operator( )( );
@@ -447,8 +350,30 @@ public:
 class CMySQLCallableGameUpdate : public CCallableGameUpdate, public CMySQLCallable
 {
 public:
- CMySQLCallableGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableGameUpdate( id, map, gamename, ownername, creatorname, players, usernames, slotsTotal, totalGames, totalPlayers, add ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+ CMySQLCallableGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableGameUpdate( id, map, gamename, ownername, creatorname, players, usernames, slotsTotal, totalPlayers, lobby, add ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableGameUpdate( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableStreamGameUpdate : public CCallableStreamGameUpdate, public CMySQLCallable
+{
+public:
+ CMySQLCallableStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableStreamGameUpdate( gamename, map, mapcrc, mapflags, port ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableStreamGameUpdate( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableStreamPlayerUpdate : public CCallableStreamPlayerUpdate, public CMySQLCallable
+{
+public:
+ CMySQLCallableStreamPlayerUpdate( string name, string gamename, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableStreamPlayerUpdate( name, gamename ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableStreamPlayerUpdate( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
@@ -491,7 +416,7 @@ public:
 class CMySQLCallableDotAGameAdd : public CCallableDotAGameAdd, public CMySQLCallable
 {
 public:
-	CMySQLCallableDotAGameAdd( uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec, string nSaveType, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableDotAGameAdd( nGameID, nWinner, nMin, nSec, nSaveType ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	CMySQLCallableDotAGameAdd( uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec, string nSaveType, vector<Event> nEvents, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableDotAGameAdd( nGameID, nWinner, nMin, nSec, nSaveType, nEvents ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableDotAGameAdd( ) { }
 
 	virtual void operator( )( );
@@ -502,7 +427,7 @@ public:
 class CMySQLCallableDotAPlayerAdd : public CCallableDotAPlayerAdd, public CMySQLCallable
 {
 public:
-	CMySQLCallableDotAPlayerAdd( uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour, uint32_t nTowerKills, uint32_t nRaxKills, uint32_t nCourierKills, string nSaveType, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableDotAPlayerAdd( nGameID, nColour, nKills, nDeaths, nCreepKills, nCreepDenies, nAssists, nGold, nNeutralKills, nItem1, nItem2, nItem3, nItem4, nItem5, nItem6, nHero, nNewColour, nTowerKills, nRaxKills, nCourierKills, nSaveType ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	CMySQLCallableDotAPlayerAdd( uint32_t nGameID, uint32_t nColour, uint32_t nKills, uint32_t nDeaths, uint32_t nCreepKills, uint32_t nCreepDenies, uint32_t nAssists, uint32_t nGold, uint32_t nNeutralKills, string nItem1, string nItem2, string nItem3, string nItem4, string nItem5, string nItem6, string nHero, uint32_t nNewColour, uint32_t nTowerKills, uint32_t nRaxKills, uint32_t nCourierKills, string nSaveType, uint32_t nLevel, uint32_t nSuicides, uint32_t n2K, uint32_t n3K, uint32_t n4K, uint32_t n5K, bool nFB, bool nFD, uint32_t nKS, uint32_t nD, uint32_t nMK, uint32_t nU, uint32_t nWS, uint32_t nMOK, uint32_t nG, uint32_t nBG, uint32_t nMS, string nSpell1, string nSpell2, string nSpell3, string nSpell4, string nSpell5, string nSpell6, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableDotAPlayerAdd( nGameID, nColour, nKills, nDeaths, nCreepKills, nCreepDenies, nAssists, nGold, nNeutralKills, nItem1, nItem2, nItem3, nItem4, nItem5, nItem6, nHero, nNewColour, nTowerKills, nRaxKills, nCourierKills, nSaveType, nLevel, nSuicides, n2K, n3K, n4K, n5K, nFB, nFD, nKS, nD, nMK, nU, nWS, nMOK, nG, nBG, nMS, nSpell1, nSpell2, nSpell3, nSpell4, nSpell5, nSpell6 ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableDotAPlayerAdd( ) { }
 
 	virtual void operator( )( );
@@ -532,6 +457,17 @@ public:
 	virtual void Close( ) { CMySQLCallable :: Close( ); }
 };
 
+class CMySQLCallableIslandPlayerSummaryCheck : public CCallableIslandPlayerSummaryCheck, public CMySQLCallable
+{
+public:
+	CMySQLCallableIslandPlayerSummaryCheck( string nName, string nRealm, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableIslandPlayerSummaryCheck( nName, nRealm ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableIslandPlayerSummaryCheck( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
 class CMySQLCallableSnipePlayerSummaryCheck : public CCallableSnipePlayerSummaryCheck, public CMySQLCallable
 {
 public:
@@ -548,6 +484,17 @@ class CMySQLCallableShipsPlayerSummaryCheck : public CCallableShipsPlayerSummary
 public:
 	CMySQLCallableShipsPlayerSummaryCheck( string nName, string nRealm, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableShipsPlayerSummaryCheck( nName, nRealm ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableShipsPlayerSummaryCheck( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableRVSPlayerSummaryCheck : public CCallableRVSPlayerSummaryCheck, public CMySQLCallable
+{
+public:
+	CMySQLCallableRVSPlayerSummaryCheck( string nName, string nRealm, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableRVSPlayerSummaryCheck( nName, nRealm ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableRVSPlayerSummaryCheck( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
@@ -631,6 +578,17 @@ public:
 	virtual void Close( ) { CMySQLCallable :: Close( ); }
 };
 
+class CMySQLCallableAdminCommand : public CCallableAdminCommand, public CMySQLCallable
+{
+public:
+	CMySQLCallableAdminCommand( string nAdmin, string nCommand, string nDescription, string nGameName, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAdminCommand( nAdmin, nCommand, nDescription, nGameName ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableAdminCommand( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
 class CMySQLCallableConnectCheck : public CCallableConnectCheck, public CMySQLCallable
 {
 public:
@@ -664,6 +622,28 @@ public:
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
 	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableVerifyUser : public CCallableVerifyUser, public CMySQLCallable
+{
+public:
+        CMySQLCallableVerifyUser( string nName, string nToken, string nRealm, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableVerifyUser( nName, nToken, nRealm), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+        virtual ~CMySQLCallableVerifyUser( ) { }
+
+        virtual void operator( )( );
+        virtual void Init( ) { CMySQLCallable :: Init( ); }
+        virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableBotStatusUpdate : public CCallableBotStatusUpdate, public CMySQLCallable
+{
+public:
+        CMySQLCallableBotStatusUpdate( map<string, uint32_t> nBnetStatus, uint32_t nUptime, string nName, string nGamename, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableBotStatusUpdate( nBnetStatus, nUptime, nName, nGamename ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+        virtual ~CMySQLCallableBotStatusUpdate( ) { }
+
+        virtual void operator( )( );
+        virtual void Init( ) { CMySQLCallable :: Init( ); }
+        virtual void Close( ) { CMySQLCallable :: Close( ); }
 };
 
 #endif

@@ -215,8 +215,6 @@ CIncomingChatPlayer *CGameProtocol :: RECEIVE_W3GS_CHAT_TO_HOST( BYTEARRAY data 
 
 bool CGameProtocol :: RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data, unsigned char war3Version )
 {
-	uint32_t ProductID	= 1462982736;	// "W3XP"
-	uint32_t Version	= war3Version;
 
 	// DEBUG_Print( "RECEIVED W3GS_SEARCHGAME" );
 	// DEBUG_Print( data );
@@ -228,9 +226,11 @@ bool CGameProtocol :: RECEIVE_W3GS_SEARCHGAME( BYTEARRAY data, unsigned char war
 	// 4 bytes					-> ??? (Zero)
 
 	if( ValidateLength( data ) && data.size( ) >= 16 )
-	{
+    {
+        uint32_t ProductID	= 1462982736;	// "W3XP"
 		if( UTIL_ByteArrayToUInt32( data, false, 4 ) == ProductID )
 		{
+            uint32_t Version	= war3Version;
 			if( UTIL_ByteArrayToUInt32( data, false, 8 ) == Version )
 			{
 				if( UTIL_ByteArrayToUInt32( data, false, 12 ) == 0 )
@@ -316,13 +316,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_PING_FROM_HOST( )
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_SLOTINFOJOIN( unsigned char PID, BYTEARRAY port, BYTEARRAY externalIP, vector<CGameSlot> &slots, uint32_t randomSeed, unsigned char layoutStyle, unsigned char playerSlots )
 {
-	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
 	BYTEARRAY SlotInfo = EncodeSlotInfo( slots, randomSeed, layoutStyle, playerSlots );
 	BYTEARRAY packet;
 
 	if( port.size( ) == 2 && externalIP.size( ) == 4 )
 	{
+        unsigned char Zeros[] = { 0, 0, 0, 0 };
 		packet.push_back( W3GS_HEADER_CONSTANT );									// W3GS header constant
 		packet.push_back( W3GS_SLOTINFOJOIN );										// W3GS_SLOTINFOJOIN
 		packet.push_back( 0 );														// packet length will be assigned later
@@ -362,13 +362,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_REJECTJOIN( uint32_t reason )
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_PLAYERINFO( unsigned char PID, string name, BYTEARRAY externalIP, BYTEARRAY internalIP )
 {
-	unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };
-	unsigned char Zeros[]				= { 0, 0, 0, 0 };
 
 	BYTEARRAY packet;
 
 	if( !name.empty( ) && name.size( ) <= 15 && externalIP.size( ) == 4 && internalIP.size( ) == 4 )
 	{
+        unsigned char PlayerJoinCounter[]	= { 2, 0, 0, 0 };
+        unsigned char Zeros[]				= { 0, 0, 0, 0 };
 		packet.push_back( W3GS_HEADER_CONSTANT );							// W3GS header constant
 		packet.push_back( W3GS_PLAYERINFO );								// W3GS_PLAYERINFO
 		packet.push_back( 0 );												// packet length will be assigned later
@@ -554,15 +554,15 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame )
+BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, uint32_t gameTicks )
 {
 	BYTEARRAY packet;
 
 	unsigned char NumLaggers = 0;
 
-	for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
+    for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); ++i )
 	{
-		if( loadInGame )
+		if( gameTicks == 0 )
 		{
 			if( !(*i)->GetFinishedLoading( ) )
                                 ++NumLaggers;
@@ -582,9 +582,9 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 		packet.push_back( 0 );						// packet length will be assigned later
 		packet.push_back( NumLaggers );
 
-		for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
+        for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); ++i )
 		{
-			if( loadInGame )
+			if( gameTicks == 0 )
 			{
 				if( !(*i)->GetFinishedLoading( ) )
 				{
@@ -597,7 +597,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 				if( (*i)->GetLagging( ) )
 				{
 					packet.push_back( (*i)->GetPID( ) );
-					UTIL_AppendByteArray( packet, GetTicks( ) - (*i)->GetStartedLaggingTicks( ), false );
+					UTIL_AppendByteArray( packet, (*i)->GetTotalLaggingTicks( ), false );
 				}
 			}
 		}
@@ -634,8 +634,6 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STOP_LAG( CGamePlayer *player, bool loadInG
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Version )
 {
-	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
-	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 	unsigned char Version[]			= { war3Version,  0,  0,  0 };
 	unsigned char Unknown[]			= {           0,  0,  0,  0 };
 
@@ -645,10 +643,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Ver
 	packet.push_back( 0 );									// packet length will be assigned later
 	packet.push_back( 0 );									// packet length will be assigned later
 
-	if( TFT )
+    if( TFT ) {
+        unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
-	else
+    } else {
+        unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
 		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+    }
 
 	UTIL_AppendByteArray( packet, Version, 4 );				// Version
 	UTIL_AppendByteArray( packet, Unknown, 4 );				// ???
@@ -660,15 +661,12 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_SEARCHGAME( bool TFT, unsigned char war3Ver
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Version, BYTEARRAY mapGameType, BYTEARRAY mapFlags, BYTEARRAY mapWidth, BYTEARRAY mapHeight, string gameName, string hostName, uint32_t upTime, string mapPath, BYTEARRAY mapCRC, uint32_t slotsTotal, uint32_t slotsOpen, uint16_t port, uint32_t hostCounter, uint32_t entryKey )
 {
-	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
-	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
-	unsigned char Version[]			= { war3Version,  0,  0,  0 };
-	unsigned char Unknown2[]		= {           1,  0,  0,  0 };
-
 	BYTEARRAY packet;
 
 	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 )
 	{
+        unsigned char Version[]			= { war3Version,  0,  0,  0 };
+        unsigned char Unknown2[]		= {           1,  0,  0,  0 };
 		// make the stat string
 
 		BYTEARRAY StatString;
@@ -689,10 +687,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 		packet.push_back( 0 );											// packet length will be assigned later
 		packet.push_back( 0 );											// packet length will be assigned later
 
-		if( TFT )
+        if( TFT ) {
+            unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 			UTIL_AppendByteArray( packet, ProductID_TFT, 4 );			// Product ID (TFT)
-		else
+        } else {
+            unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
 			UTIL_AppendByteArray( packet, ProductID_ROC, 4 );			// Product ID (ROC)
+        }
 
 		UTIL_AppendByteArray( packet, Version, 4 );						// Version
 		UTIL_AppendByteArray( packet, hostCounter, false );				// Host Counter
@@ -717,23 +718,8 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_GAMEINFO( bool TFT, unsigned char war3Versi
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_CUSTOM_GAMELIST( string username, string gamename, string owner, uint32_t slotsTaken, uint32_t slotsTotal )
-{
-	BYTEARRAY packet;
-	packet.push_back( 3 );
-	packet.push_back( 4 );
-	UTIL_AppendByteArrayFast( packet, username );
-	UTIL_AppendByteArrayFast( packet, gamename );
-	UTIL_AppendByteArrayFast( packet, owner );
-	UTIL_AppendByteArray( packet, slotsTaken, false );
-	UTIL_AppendByteArray( packet, slotsTotal, false );
-	return packet;
-}
-
 BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( bool TFT, unsigned char war3Version )
 {
-	unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
-	unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 	unsigned char Version[]			= { war3Version,  0,  0,  0 };
 	unsigned char HostCounter[]		= {           1,  0,  0,  0 };
 
@@ -743,10 +729,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CREATEGAME( bool TFT, unsigned char war3Ver
 	packet.push_back( 0 );									// packet length will be assigned later
 	packet.push_back( 0 );									// packet length will be assigned later
 
-	if( TFT )
+    if( TFT ) {
+        unsigned char ProductID_TFT[]	= {          80, 88, 51, 87 };	// "W3XP"
 		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
-	else
+    } else {
+        unsigned char ProductID_ROC[]	= {          51, 82, 65, 87 };	// "WAR3"
 		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+    }
 
 	UTIL_AppendByteArray( packet, Version, 4 );				// Version
 	UTIL_AppendByteArray( packet, HostCounter, 4 );			// Host Counter
@@ -792,12 +781,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_DECREATEGAME( )
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_MAPCHECK( string mapPath, BYTEARRAY mapSize, BYTEARRAY mapInfo, BYTEARRAY mapCRC, BYTEARRAY mapSHA1 )
 {
-	unsigned char Unknown[] = { 1, 0, 0, 0 };
-
 	BYTEARRAY packet;
 
 	if( !mapPath.empty( ) && mapSize.size( ) == 4 && mapInfo.size( ) == 4 && mapCRC.size( ) == 4 && mapSHA1.size( ) == 20 )
 	{
+        unsigned char Unknown[] = { 1, 0, 0, 0 };
 		packet.push_back( W3GS_HEADER_CONSTANT );		// W3GS header constant
 		packet.push_back( W3GS_MAPCHECK );				// W3GS_MAPCHECK
 		packet.push_back( 0 );							// packet length will be assigned later
@@ -837,12 +825,11 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_STARTDOWNLOAD( unsigned char fromPID )
 
 BYTEARRAY CGameProtocol :: SEND_W3GS_MAPPART( unsigned char fromPID, unsigned char toPID, uint32_t start, string *mapData )
 {
-	unsigned char Unknown[] = { 1, 0, 0, 0 };
-
 	BYTEARRAY packet;
 
 	if( start < mapData->size( ) )
 	{
+        unsigned char Unknown[] = { 1, 0, 0, 0 };
 		packet.push_back( W3GS_HEADER_CONSTANT );				// W3GS header constant
 		packet.push_back( W3GS_MAPPART );						// W3GS_MAPPART
 		packet.push_back( 0 );									// packet length will be assigned later
@@ -945,14 +932,13 @@ bool CGameProtocol :: ValidateLength( BYTEARRAY &content )
 {
 	// verify that bytes 3 and 4 (indices 2 and 3) of the content array describe the length
 
-	uint16_t Length;
 	BYTEARRAY LengthBytes;
 
 	if( content.size( ) >= 4 && content.size( ) <= 65535 )
-	{
+    {
 		LengthBytes.push_back( content[2] );
 		LengthBytes.push_back( content[3] );
-		Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
+        uint16_t Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
 
 		if( Length == content.size( ) )
 			return true;
@@ -1007,12 +993,12 @@ CIncomingAction :: ~CIncomingAction( )
 // CIncomingChatPlayer
 //
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage ) : m_Type( CTH_MESSAGE ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage ) : m_Type( CTH_MESSAGE ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_Byte( '\0' )
 {
 
 }
 
-CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags ) : m_Type( CTH_MESSAGEEXTRA ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_ExtraFlags( nExtraFlags )
+CIncomingChatPlayer :: CIncomingChatPlayer( unsigned char nFromPID, BYTEARRAY &nToPIDs, unsigned char nFlag, string nMessage, BYTEARRAY &nExtraFlags ) : m_Type( CTH_MESSAGEEXTRA ), m_FromPID( nFromPID ), m_ToPIDs( nToPIDs ), m_Flag( nFlag ), m_Message( nMessage ), m_ExtraFlags( nExtraFlags ), m_Byte( '\0' )
 {
 
 }

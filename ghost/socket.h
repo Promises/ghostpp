@@ -162,6 +162,8 @@ public:
 	virtual uint32_t GetLastSend( )				{ return m_LastSend; }
 	virtual void DoRecv( fd_set *fd );
 	virtual void DoSend( fd_set *send_fd );
+	virtual void DoRecvPlain( fd_set *fd );
+	virtual void DoSendPlain( fd_set *send_fd );
 	virtual void Disconnect( );
 	virtual void SetNoDelay( bool noDelay );
 	virtual void SetLogFile( string nLogFile )	{ m_LogFile = nLogFile; }

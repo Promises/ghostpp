@@ -27,12 +27,8 @@
 #define INCLUDES_H
 
 // standard integer sizes for 64 bit compatibility
-
-#ifdef WIN32
- #include "ms_stdint.h"
-#else
- #include <stdint.h>
-#endif
+// (Windows have this header)
+#include <stdint.h>
 
 // STL
 

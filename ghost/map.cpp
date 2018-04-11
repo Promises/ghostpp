@@ -40,7 +40,7 @@
 // CMap
 //
 
-CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSize( UTIL_ExtractNumbers( "174 221 4 0", 4 ) ), m_MapInfo( UTIL_ExtractNumbers( "251 57 68 98", 4 ) ), m_MapCRC( UTIL_ExtractNumbers( "108 250 204 59", 4 ) ), m_MapSHA1( UTIL_ExtractNumbers( "35 81 104 182 223 63 204 215 1 17 87 234 220 66 3 185 82 99 6 13", 20 ) ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapWidth( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapHeight( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapLoadInGame( false ), m_MapNumPlayers( 12 ), m_MapNumTeams( 12 )
+CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSize( UTIL_ExtractNumbers( "174 221 4 0", 4 ) ), m_MapInfo( UTIL_ExtractNumbers( "251 57 68 98", 4 ) ), m_MapCRC( UTIL_ExtractNumbers( "108 250 204 59", 4 ) ), m_MapSHA1( UTIL_ExtractNumbers( "35 81 104 182 223 63 204 215 1 17 87 234 220 66 3 185 82 99 6 13", 20 ) ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapWidth( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapHeight( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapLoadInGame( false ), m_MapNumPlayers( 12 ), m_MapNumTeams( 12 ), m_MapDefaultPlayerScore( 1000 ), m_Tournament( false ), m_TournamentFakeSlot( 255 ), m_StartPlayers( 0 ), m_Matchmaking( false ), m_MinimumScore( 0 ), m_MaximumScore( 99999 )
 {
 	CONSOLE_Print( "[MAP] using hardcoded Emerald Gardens map data for Warcraft 3 version 1.24 & 1.24b" );
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 0, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
@@ -318,7 +318,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							char *SubFileData = new char[FileLength];
 							DWORD BytesRead = 0;
 
-							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 							{
 								CONSOLE_Print( "[MAP] overriding default common.j with map copy while calculating map_crc/sha1" );
 								OverrodeCommonJ = true;
@@ -354,7 +354,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 							char *SubFileData = new char[FileLength];
 							DWORD BytesRead = 0;
 
-							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 							{
 								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc/sha1" );
 								OverrodeBlizzardJ = true;
@@ -412,7 +412,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								char *SubFileData = new char[FileLength];
 								DWORD BytesRead = 0;
 
-								if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+								if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 								{
 									if( *i == "war3map.j" || *i == "scripts\\war3map.j" )
 										FoundScript = true;
@@ -479,7 +479,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 					char *SubFileData = new char[FileLength];
 					DWORD BytesRead = 0;
 
-					if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead ) )
+					if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 					{
 						istringstream ISS( string( SubFileData, BytesRead ) );
 
@@ -791,6 +791,8 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	m_MapHeight = MapHeight;
 	m_MapType = CFG->GetString( "map_type", string( ) );
+	m_GameName = CFG->GetString( "map_gamename", string( ) );
+	m_StartPlayers = CFG->GetInt( "map_startplayers", 0 );
 	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
 	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
 	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );
@@ -798,6 +800,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
 	m_Tournament = CFG->GetInt( "map_tournament", 0 ) == 0 ? false : true;
 	m_TournamentFakeSlot = CFG->GetInt( "map_tournamentfake", 255 );
+
+    m_Matchmaking = CFG->GetInt( "map_matchmaking", 0 ) == 0 ? false : true;
+    m_MinimumScore = CFG->GetInt( "map_matchmaking_minimumscore", 0 );
+    m_MaximumScore = CFG->GetInt( "map_matchmaking_maximumscore", 99999 );
 	
 	if( m_Tournament )
 	{
@@ -1012,4 +1018,17 @@ uint32_t CMap :: XORRotateLeft( unsigned char *data, uint32_t length )
 	}
 
 	return Val;
+}
+
+void CMap :: ForceAddObservers( )
+{
+	// force add observer slots
+
+	if( m_MapObservers != MAPOBS_ALLOWED && m_MapObservers != MAPOBS_REFEREES )
+	{
+		m_MapObservers = MAPOBS_REFEREES;
+
+		while( m_Slots.size( ) < 12 )
+			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 12, 12, SLOTRACE_RANDOM ) );
+	}
 }

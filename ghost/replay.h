@@ -100,7 +100,7 @@ public:
 	void AddTimeSlot( uint16_t timeIncrement, queue<CIncomingAction *> actions );
 	void AddChatMessage( unsigned char PID, unsigned char flags, uint32_t chatMode, string message );
 	void AddLoadingBlock( BYTEARRAY &loadingBlock );
-	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber );
+	void BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber, bool censored );
 
 	void ParseReplay( bool parseBlocks );
 };

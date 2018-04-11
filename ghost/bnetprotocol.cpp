@@ -465,8 +465,6 @@ CIncomingClanList *CBNETProtocol :: RECEIVE_SID_CLANMEMBERSTATUSCHANGE( BYTEARRA
 			unsigned char Status = data[Name.size( ) + 6];
 
 			// in the original VB source the location string is read but discarded, so that's what I do here
-
-			BYTEARRAY Location = UTIL_ExtractCString( data, Name.size( ) + 7 );
 			return new CIncomingClanList(	string( Name.begin( ), Name.end( ) ),
 											Rank,
 											Status );
@@ -587,19 +585,19 @@ BYTEARRAY CBNETProtocol :: SEND_SID_ENTERCHAT( )
 
 BYTEARRAY CBNETProtocol :: SEND_SID_JOINCHANNEL( string channel )
 {
-	unsigned char NoCreateJoin[]	= { 2, 0, 0, 0 };
-	unsigned char FirstJoin[]		= { 1, 0, 0, 0 };
-
 	BYTEARRAY packet;
 	packet.push_back( BNET_HEADER_CONSTANT );				// BNET header constant
 	packet.push_back( SID_JOINCHANNEL );					// SID_JOINCHANNEL
 	packet.push_back( 0 );									// packet length will be assigned later
 	packet.push_back( 0 );									// packet length will be assigned later
 
-	if( channel.size( ) > 0 )
-		UTIL_AppendByteArray( packet, NoCreateJoin, 4 );	// flags for no create join
-	else
+    if( channel.size( ) > 0 ) {
+        unsigned char NoCreateJoin[]	= { 2, 0, 0, 0 };
+        UTIL_AppendByteArray( packet, NoCreateJoin, 4 );	// flags for no create join
+    } else {
+        unsigned char FirstJoin[]		= { 1, 0, 0, 0 };
 		UTIL_AppendByteArray( packet, FirstJoin, 4 );		// flags for first join
+    }
 
 	UTIL_AppendByteArrayFast( packet, channel );
 	AssignLength( packet );
@@ -669,9 +667,6 @@ Flags:
 
 */
 
-	unsigned char Unknown[]		= { 255,  3,  0,  0 };
-	unsigned char CustomGame[]	= {   0,  0,  0,  0 };
-
 	string HostCounterString = UTIL_ToHexString( hostCounter );
 
 	if( HostCounterString.size( ) < 8 )
@@ -698,6 +693,9 @@ Flags:
 	if( mapGameType.size( ) == 4 && mapFlags.size( ) == 4 && mapWidth.size( ) == 2 && mapHeight.size( ) == 2 && !gameName.empty( ) && !hostName.empty( ) && !mapPath.empty( ) && mapCRC.size( ) == 4 && mapSHA1.size( ) == 20 && StatString.size( ) < 128 && HostCounterString.size( ) == 8 )
 	{
 		// make the rest of the packet
+
+        unsigned char Unknown[]		= { 255,  3,  0,  0 };
+        unsigned char CustomGame[]	= {   0,  0,  0,  0 };
 
 		packet.push_back( BNET_HEADER_CONSTANT );						// BNET header constant
 		packet.push_back( SID_STARTADVEX3 );							// SID_STARTADVEX3
@@ -804,9 +802,7 @@ BYTEARRAY CBNETProtocol :: SEND_SID_NETGAMEPORT( uint16_t serverPort )
 BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, uint32_t localeID, string countryAbbrev, string country )
 {
 	unsigned char ProtocolID[]		= {   0,   0,   0,   0 };
-	unsigned char PlatformID[]		= {  54,  56,  88,  73 };	// "IX86"
-	unsigned char ProductID_ROC[]	= {  51,  82,  65,  87 };	// "WAR3"
-	unsigned char ProductID_TFT[]	= {  80,  88,  51,  87 };	// "W3XP"
+    unsigned char PlatformID[]		= {  54,  56,  88,  73 };	// "IX86"
 	unsigned char Version[]			= { ver,   0,   0,   0 };
 	unsigned char Language[]		= {  83,  85, 110, 101 };	// "enUS"
 	unsigned char LocalIP[]			= { 127,   0,   0,   1 };
@@ -820,10 +816,13 @@ BYTEARRAY CBNETProtocol :: SEND_SID_AUTH_INFO( unsigned char ver, bool TFT, uint
 	UTIL_AppendByteArray( packet, ProtocolID, 4 );			// Protocol ID
 	UTIL_AppendByteArray( packet, PlatformID, 4 );			// Platform ID
 
-	if( TFT )
+    if( TFT ) {
+        unsigned char ProductID_TFT[]	= {  80,  88,  51,  87 };	// "W3XP"
 		UTIL_AppendByteArray( packet, ProductID_TFT, 4 );	// Product ID (TFT)
-	else
+    } else {
+        unsigned char ProductID_ROC[]	= {  51,  82,  65,  87 };	// "WAR3"
 		UTIL_AppendByteArray( packet, ProductID_ROC, 4 );	// Product ID (ROC)
+    }
 
 	UTIL_AppendByteArray( packet, Version, 4 );				// Version
 	UTIL_AppendByteArray( packet, Language, 4 );			// Language (hardcoded as enUS to ensure battle.net sends the bot messages in English)
@@ -1095,14 +1094,13 @@ bool CBNETProtocol :: ValidateLength( BYTEARRAY &content )
 {
 	// verify that bytes 3 and 4 (indices 2 and 3) of the content array describe the length
 
-	uint16_t Length;
 	BYTEARRAY LengthBytes;
 
 	if( content.size( ) >= 4 && content.size( ) <= 65535 )
-	{
+    {
 		LengthBytes.push_back( content[2] );
 		LengthBytes.push_back( content[3] );
-		Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
+        uint16_t Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
 
 		if( Length == content.size( ) )
 			return true;

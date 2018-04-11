@@ -137,7 +137,7 @@ void CReplay :: AddLoadingBlock( BYTEARRAY &loadingBlock )
 	m_LoadingBlocks.push( loadingBlock );
 }
 
-void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber )
+void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Version, uint16_t buildNumber, bool censored )
 {
 	m_War3Version = war3Version;
 	m_BuildNumber = buildNumber;
@@ -153,8 +153,14 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 	Replay.push_back( 0 );															// Unknown (4.0)
 	Replay.push_back( 0 );															// Unknown (4.0)
 	Replay.push_back( 0 );															// Host RecordID (4.1)
-	Replay.push_back( m_HostPID );													// Host PlayerID (4.1)
-	UTIL_AppendByteArrayFast( Replay, m_HostName );									// Host PlayerName (4.1)
+	Replay.push_back( m_HostPID );
+	if(censored) {
+		string name = "Host";
+		CONSOLE_Print("Adding censored player " + name + " for player " + m_HostName);
+		UTIL_AppendByteArrayFast( Replay, name);
+	} else {													// Host PlayerID (4.1)
+		UTIL_AppendByteArrayFast( Replay, m_HostName );									// Host PlayerName (4.1)
+	}
 	Replay.push_back( 1 );															// Host AdditionalSize (4.1)
 	Replay.push_back( 0 );															// Host AdditionalData (4.1)
 	UTIL_AppendByteArrayFast( Replay, gameName );									// GameName (4.2)
@@ -172,7 +178,14 @@ void CReplay :: BuildReplay( string gameName, string statString, uint32_t war3Ve
 		{
 			Replay.push_back( 22 );													// Player RecordID (4.1)
 			Replay.push_back( (*i).first );											// Player PlayerID (4.1)
-			UTIL_AppendByteArrayFast( Replay, (*i).second );						// Player PlayerName (4.1)
+			if(censored) {
+				string censoredName = UTIL_ByteArrayToDecString(UTIL_CreateByteArray((*i).first));
+				string fullName = "Player_" + UTIL_ToString(UTIL_ToUInt32(censoredName) - 1);
+				CONSOLE_Print("Adding censored player " + fullName + " for player " + (*i).second);
+				UTIL_AppendByteArrayFast( Replay, fullName);
+			} else {
+				UTIL_AppendByteArrayFast( Replay, (*i).second );						// Player PlayerName (4.1)
+			}
 			Replay.push_back( 1 );													// Player AdditionalSize (4.1)
 			Replay.push_back( 0 );													// Player AdditionalData (4.1)
 			UTIL_AppendByteArray( Replay, (uint32_t)0, false );						// Unknown

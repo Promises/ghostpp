@@ -81,35 +81,17 @@ CIncomingGarenaUser *CGCBIProtocol :: RECEIVE_GCBI_INIT( BYTEARRAY data )
 // OTHER FUNCTIONS //
 /////////////////////
 
-bool CGCBIProtocol :: AssignLength( BYTEARRAY &content )
-{
-	// insert the actual length of the content array into bytes 3 and 4 (indices 2 and 3)
-
-	BYTEARRAY LengthBytes;
-
-	if( content.size( ) >= 4 && content.size( ) <= 65535 )
-	{
-		LengthBytes = UTIL_CreateByteArray( (uint16_t)content.size( ), false );
-		content[2] = LengthBytes[0];
-		content[3] = LengthBytes[1];
-		return true;
-	}
-
-	return false;
-}
-
 bool CGCBIProtocol :: ValidateLength( BYTEARRAY &content )
 {
 	// verify that bytes 3 and 4 (indices 2 and 3) of the content array describe the length
 
-	uint16_t Length;
 	BYTEARRAY LengthBytes;
 
 	if( content.size( ) >= 4 && content.size( ) <= 65535 )
-	{
+    {
 		LengthBytes.push_back( content[2] );
 		LengthBytes.push_back( content[3] );
-		Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
+        uint16_t Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
 
 		if( Length == content.size( ) )
 			return true;

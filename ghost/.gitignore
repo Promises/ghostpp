@@ -1,0 +1,10 @@
+*.o
+Bot.config
+Bot.creator
+Bot.creator.user
+Bot.files
+Bot.includes
+ghost++
+CMakeLists.txt
+.idea/
+cmake-build-debug/

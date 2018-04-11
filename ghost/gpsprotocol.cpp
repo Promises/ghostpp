@@ -138,6 +138,18 @@ BYTEARRAY CGPSProtocol :: SEND_GPSS_REJECT( uint32_t reason )
 	return packet;
 }
 
+BYTEARRAY CGPSProtocol :: SEND_GPSS_SUPPORT_EXTENDED( uint32_t seconds )
+{
+	BYTEARRAY packet;
+	packet.push_back( GPS_HEADER_CONSTANT );
+	packet.push_back( GPS_SUPPORT_EXTENDED );
+	packet.push_back( 0 );
+	packet.push_back( 0 );
+	UTIL_AppendByteArray( packet, seconds, false );
+	AssignLength( packet );
+	return packet;
+}
+
 /////////////////////
 // OTHER FUNCTIONS //
 /////////////////////
@@ -154,26 +166,6 @@ bool CGPSProtocol :: AssignLength( BYTEARRAY &content )
 		content[2] = LengthBytes[0];
 		content[3] = LengthBytes[1];
 		return true;
-	}
-
-	return false;
-}
-
-bool CGPSProtocol :: ValidateLength( BYTEARRAY &content )
-{
-	// verify that bytes 3 and 4 (indices 2 and 3) of the content array describe the length
-
-	uint16_t Length;
-	BYTEARRAY LengthBytes;
-
-	if( content.size( ) >= 4 && content.size( ) <= 65535 )
-	{
-		LengthBytes.push_back( content[2] );
-		LengthBytes.push_back( content[3] );
-		Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
-
-		if( Length == content.size( ) )
-			return true;
 	}
 
 	return false;

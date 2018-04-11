@@ -1,4 +1,4 @@
-/*
+	/*
 
 	ent-ghost
 	Copyright [2011-2013] [Jack Lu]
@@ -156,21 +156,21 @@ void CSocket :: Reset( )
 
 string CSocket :: GetHostName( )
 {
-       if( m_CachedHostName.empty( ) )
-       {
-               char host[NI_MAXHOST], service[NI_MAXSERV];
-               int s = getnameinfo( ( struct sockaddr * ) &m_SIN, sizeof( m_SIN ), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV );
-               string str( host );
+	if( m_CachedHostName.empty( ) )
+	{
+		char host[NI_MAXHOST], service[NI_MAXSERV];
+        getnameinfo( ( struct sockaddr * ) &m_SIN, sizeof( m_SIN ), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV );
+		string str( host );
 
-               m_CachedHostName = str;
-
-               if( m_CachedHostName.empty( ) )
-                       m_CachedHostName = "Unknown";
-
-               return str;
-       }
-       else
-               return m_CachedHostName;
+		m_CachedHostName = str;
+	
+		if( m_CachedHostName.empty( ) )
+			m_CachedHostName = "Unknown";
+	
+		return str;
+	}
+	else
+		return m_CachedHostName;
 }
 
 //
@@ -347,6 +347,68 @@ void CTCPSocket :: DoSend( fd_set *send_fd )
 	}
 }
 
+void CTCPSocket :: DoSendPlain( fd_set *send_fd )
+{
+	if( m_Socket == INVALID_SOCKET || m_HasError || !m_Connected || m_SendBuffer.empty( ) )
+		return;
+	if( FD_ISSET( m_Socket, send_fd ) )
+	{
+		// socket is ready, send it
+
+		int s = send( m_Socket, m_SendBuffer.c_str( ), (int)m_SendBuffer.size( ), MSG_NOSIGNAL );
+
+		if( s > 0 )
+		{
+			// success! only some of the data may have been sent, remove it from the buffer
+
+			if( !m_LogFile.empty( ) )
+			{
+				ofstream Log;
+				Log.open( m_LogFile.c_str( ), ios :: app );
+
+				if( !Log.fail( ) )
+				{
+					Log << "SEND >>> " << m_SendBuffer.substr(0, s)  << endl;
+					Log.close( );
+				}
+			}
+			m_SendBuffer = m_SendBuffer.substr( s );
+			m_LastSend = GetTime( );
+		}
+		else if( s == SOCKET_ERROR && GetLastError( ) != EWOULDBLOCK )
+		{
+			// send error
+
+			m_HasError = true;
+			m_Error = GetLastError( );
+			CONSOLE_Print( "[TCPSOCKET] error (send) - " + GetErrorString( ) );
+			return;
+		}
+	}
+}
+
+void CTCPSocket :: DoRecvPlain( fd_set *fd ) {
+	if( m_Socket == INVALID_SOCKET || m_HasError || !m_Connected )
+		return;
+
+	if( FD_ISSET( m_Socket, fd ) )
+	{
+		// data is waiting, receive it
+
+		char buffer[1024];
+		int c = recv( m_Socket, buffer, 1024, 0 );
+		if(c>0) {
+			m_RecvBuffer += string( buffer, c );
+			m_LastRecv = GetTime( );
+		} else {
+			// the other end closed the connection
+
+			CONSOLE_Print( "[TCPSOCKET] closed by remote host" );
+			m_Connected = false;
+		}
+	}
+}
+
 void CTCPSocket :: Disconnect( )
 {
 	if( m_Socket != INVALID_SOCKET )
@@ -407,7 +469,8 @@ void CTCPClient :: Connect( string localaddress, string address, uint16_t port )
 
 		LocalSIN.sin_port = htons( 0 );
 
-		if( bind( m_Socket, (struct sockaddr *)&LocalSIN, sizeof( LocalSIN ) ) == SOCKET_ERROR )
+		// fix for Visual Studio, tries to use an invalid namespace
+		if( ::bind( m_Socket, (struct sockaddr *)&LocalSIN, sizeof( LocalSIN ) ) == SOCKET_ERROR )
 		{
 			m_HasError = true;
 			m_Error = GetLastError( );
@@ -529,7 +592,7 @@ bool CTCPServer :: Listen( string address, uint16_t port )
 
 	m_SIN.sin_port = htons( port );
 
-	if( bind( m_Socket, (struct sockaddr *)&m_SIN, sizeof( m_SIN ) ) == SOCKET_ERROR )
+	if( ::bind( m_Socket, (struct sockaddr *)&m_SIN, sizeof( m_SIN ) ) == SOCKET_ERROR )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );
@@ -743,7 +806,7 @@ bool CUDPServer :: Bind( struct sockaddr_in sin )
 
 	m_SIN = sin;
 
-	if( bind( m_Socket, (struct sockaddr *)&m_SIN, sizeof( m_SIN ) ) == SOCKET_ERROR )
+	if( ::bind( m_Socket, (struct sockaddr *)&m_SIN, sizeof( m_SIN ) ) == SOCKET_ERROR )
 	{
 		m_HasError = true;
 		m_Error = GetLastError( );

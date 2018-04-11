@@ -55,8 +55,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 	unsigned int i = 0;
 	BYTEARRAY *ActionData = Action->GetAction( );
 	BYTEARRAY MissionKey;
-	BYTEARRAY Key;
-	BYTEARRAY Value;
+    BYTEARRAY Key;
 
 	while( ActionData->size( ) >= i + 9 )
 	{
@@ -79,18 +78,14 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 					Key = UTIL_ExtractCString( *ActionData, i + 10 + MissionKey.size( ) );
 
 					if( ActionData->size( ) >= i + 15 + MissionKey.size( ) + Key.size( ) )
-					{
-						Value = BYTEARRAY( ActionData->begin( ) + i + 11 + MissionKey.size( ) + Key.size( ), ActionData->begin( ) + i + 15 + MissionKey.size( ) + Key.size( ) );
+                    {
 						string MissionKeyString = string( MissionKey.begin( ), MissionKey.end( ) );
-						string KeyString = string( Key.begin( ), Key.end( ) );
-						uint32_t ValueInt = UTIL_ByteArrayToUInt32( Value, false );
+                        string KeyString = string( Key.begin( ), Key.end( ) );
 
 						// CONSOLE_Print( "[STATSW3MMD] DEBUG: mkey [" + MissionKeyString + "], key [" + KeyString + "], value [" + UTIL_ToString( ValueInt ) + "]" );
 
 						if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "val:" )
-						{
-							string ValueIDString = MissionKeyString.substr( 4 );
-							uint32_t ValueID = UTIL_ToUInt32( ValueIDString );
+                        {
 							vector<string> Tokens = TokenizeKey( KeyString );
 
 							if( !Tokens.empty( ) )
@@ -323,9 +318,7 @@ bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
                                                         ++m_NextValueID;
 						}
 						else if( MissionKeyString.size( ) > 4 && MissionKeyString.substr( 0, 4 ) == "chk:" )
-						{
-							string CheckIDString = MissionKeyString.substr( 4 );
-							uint32_t CheckID = UTIL_ToUInt32( CheckIDString );
+                        {
 
 							// todotodo: cheat detection
 
@@ -478,7 +471,7 @@ bool CStatsW3MMD :: IsWinner( )
 
 void CStatsW3MMD :: SetWinner( uint32_t nWinner )
 {
-	for( vector<CGamePlayer *> :: iterator i = m_Game->m_Players.begin( ); i != m_Game->m_Players.end( ); i++)
+    for( vector<CGamePlayer *> :: iterator i = m_Game->m_Players.begin( ); i != m_Game->m_Players.end( ); ++i)
 	{
 		unsigned char playerSID = m_Game->GetSIDFromPID( (*i)->GetPID( ) );
 		

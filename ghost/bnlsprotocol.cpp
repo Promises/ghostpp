@@ -52,16 +52,13 @@ BYTEARRAY CBNLSProtocol :: RECEIVE_BNLS_WARDEN( BYTEARRAY data )
 	// (VOID)					-> Data
 
 	if( ValidateLength( data ) && data.size( ) >= 11 )
-	{
-		unsigned char Usage = data[3];
-		uint32_t Cookie = UTIL_ByteArrayToUInt32( data, false, 4 );
-		unsigned char Result = data[8];
-		uint16_t Length = UTIL_ByteArrayToUInt16( data, false, 10 );
+    {
+        unsigned char Result = data[8];
 
 		if( Result == 0x00 )
 			return BYTEARRAY( data.begin( ) + 11, data.end( ) );
 		else
-			CONSOLE_Print( "[BNLSPROTO] received error code " + UTIL_ToString( data[8] ) );
+            CONSOLE_Print( "[BNLSPROTO] received error code " + UTIL_ToString( Result ) );
 	}
 
 	return BYTEARRAY( );
@@ -145,14 +142,13 @@ bool CBNLSProtocol :: ValidateLength( BYTEARRAY &content )
 {
 	// verify that bytes 1 and 2 (indices 0 and 1) of the content array describe the length
 
-	uint16_t Length;
 	BYTEARRAY LengthBytes;
 
 	if( content.size( ) >= 2 && content.size( ) <= 65535 )
-	{
+    {
 		LengthBytes.push_back( content[0] );
 		LengthBytes.push_back( content[1] );
-		Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
+        uint16_t Length = UTIL_ByteArrayToUInt16( LengthBytes, false );
 
 		if( Length == content.size( ) )
 			return true;
