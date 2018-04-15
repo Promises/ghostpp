@@ -2689,7 +2689,7 @@ uint32_t MySQLVerifyUser( void *conn, string *error, uint32_t botid, string name
 
 bool MySQLBotStatusUpdate(void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename )
 {
-  /*  uint32_t result = false;
+    uint32_t result = false;
     string EscName = MySQLEscapeString( conn, name );
     string EscGamename = MySQLEscapeString( conn, gamename );
     string bnetJsonData = "[";
@@ -2706,7 +2706,7 @@ bool MySQLBotStatusUpdate(void *conn, string *error, uint32_t botid, map<string,
                 *error = mysql_error( (MYSQL *)conn );
     else
         result = true;
-*/
+
     return true;
 }
 
