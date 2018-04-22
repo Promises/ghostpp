@@ -1384,10 +1384,10 @@ bool CGHost :: Update( long usecBlock )
 				scoreType = 1;
 		
 			// we want to find ten players, each with a different PID
-			CStagePlayer *FoundPlayers[12]; // target PID is index plus one
+			CStagePlayer *FoundPlayers[24]; // target PID is index plus one
 			int NumPlayersFound = 0;
 		
-			for( int i = 0; i < 12; i++ )
+			for( int i = 0; i < 24; i++ )
 				FoundPlayers[i] = NULL;
 		
 			// loop from oldest to newest players
@@ -1431,7 +1431,7 @@ bool CGHost :: Update( long usecBlock )
 				CGame *NewGame = new CGame( this, m_AutoHostMap[0], NULL, 6112, GAME_PUBLIC, Gamename, "", "", "" );
 				BroadcastChat( "ENT", "The game [" + Gamename + "] has started, with score centered around [" + UTIL_ToString( score ) + "]." );
 			
-				for( int i = 0; i < 12; i++ )
+				for( int i = 0; i < 24; i++ )
 				{
 					if( FoundPlayers[i] )
 					{
@@ -1566,10 +1566,13 @@ bool CGHost :: Update( long usecBlock )
             }
         }
         string gamename = "";
-        if(m_CurrentGame) {
+        uint32_t players= 0;
+	if(m_CurrentGame) {
             gamename = m_CurrentGame->GetGameName();
+	    players= m_CurrentGame->GetNumHumanPlayers();
         }
-        m_CallableBotStatusUpdate = m_DB->ThreadedBotStatusUpdate( map, GetTime() - m_Uptime, botname, gamename);
+
+        m_CallableBotStatusUpdate = m_DB->ThreadedBotStatusUpdate( map, GetTime() - m_Uptime,players, botname, gamename);
         m_LastStatusUpdate = GetTime();
     }
 

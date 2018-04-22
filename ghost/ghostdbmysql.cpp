@@ -727,14 +727,14 @@ CCallableVerifyUser *CGHostDBMySQL :: ThreadedVerifyUser( string name, string to
         return Callable;
 }
 
-CCallableBotStatusUpdate *CGHostDBMySQL :: ThreadedBotStatusUpdate(map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename)
+CCallableBotStatusUpdate *CGHostDBMySQL :: ThreadedBotStatusUpdate(map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename)
 {
         void *Connection = GetIdleConnection( );
 
         if( !Connection )
                 ++m_NumConnections;
 
-        CCallableBotStatusUpdate *Callable = new CMySQLCallableBotStatusUpdate(bnetStatus, uptime, name, gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+        CCallableBotStatusUpdate *Callable = new CMySQLCallableBotStatusUpdate(bnetStatus, uptime, players, name, gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
         CreateThread( Callable );
         ++m_OutstandingCallables;
         return Callable;
@@ -2687,7 +2687,7 @@ uint32_t MySQLVerifyUser( void *conn, string *error, uint32_t botid, string name
 	return result;
 }
 
-bool MySQLBotStatusUpdate(void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename )
+bool MySQLBotStatusUpdate(void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename )
 {
     uint32_t result = false;
     string EscName = MySQLEscapeString( conn, name );
@@ -2699,9 +2699,8 @@ bool MySQLBotStatusUpdate(void *conn, string *error, uint32_t botid, map<string,
     }
     bnetJsonData = bnetJsonData.substr(0, bnetJsonData.length() - 1);
     bnetJsonData += "]";
-
-    string qry = "INSERT INTO stats_bot_status (botid, status, uptime, botname, gamename) VALUES ('"+UTIL_ToString(botid)+"', '"+bnetJsonData+"', '"+UTIL_ToString(uptime)+"', '" + EscName + "', '"+EscGamename+"') ON DUPLICATE KEY UPDATE last_update=CURRENT_TIMESTAMP, status='"+bnetJsonData+"', uptime='"+UTIL_ToString(uptime)+"', botname='"+EscName+"', gamename='"+EscGamename+"';";
-
+    string qry = "INSERT INTO stats_bot_status (botid, status, uptime, players, botname, gamename) VALUES ('"+UTIL_ToString(botid)+"', '"+bnetJsonData+"', '"+UTIL_ToString(uptime)+"', '"+UTIL_ToString(players)+"', '" + EscName + "', '"+EscGamename+"') ON DUPLICATE KEY UPDATE last_update=CURRENT_TIMESTAMP, status='"+bnetJsonData+"', uptime='"+UTIL_ToString(uptime)+"', players='"+UTIL_ToString(players)+"', botname='"+EscName+"', gamename='"+EscGamename+"';";
+    
     if( mysql_real_query( (MYSQL *)conn, qry.c_str( ), qry.size( ) ) != 0 )
                 *error = mysql_error( (MYSQL *)conn );
     else
@@ -3188,7 +3187,7 @@ void CMySQLCallableBotStatusUpdate  :: operator( )( )
         Init( );
 
         if( m_Error.empty( ) )
-                m_Result = MySQLBotStatusUpdate(m_Connection, &m_Error, m_SQLBotID, m_BnetStatus, m_Uptime, m_Name, m_Gamename);
+                m_Result = MySQLBotStatusUpdate(m_Connection, &m_Error, m_SQLBotID, m_BnetStatus, m_Uptime, m_Players, m_Name, m_Gamename);
 
         Close( );
 }

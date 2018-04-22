@@ -99,7 +99,7 @@ public:
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType );
 	virtual CCallableVerifyUser *ThreadedVerifyUser( string name, string token, string realm );
-    virtual CCallableBotStatusUpdate *ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename );
+    virtual CCallableBotStatusUpdate *ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename );
 
 	// other database functions
 
@@ -154,7 +154,7 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,double> var_reals, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,string> var_strings, string saveType );
 uint32_t VerifyUser( void *conn, string *error, uint32_t botid, string name, string token, string realm );
-bool BotStatusUpdate( void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename );
+bool BotStatusUpdate( void *conn, string *error, uint32_t botid, map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename );
 
 //
 // MySQL Callables
@@ -638,7 +638,7 @@ public:
 class CMySQLCallableBotStatusUpdate : public CCallableBotStatusUpdate, public CMySQLCallable
 {
 public:
-        CMySQLCallableBotStatusUpdate( map<string, uint32_t> nBnetStatus, uint32_t nUptime, string nName, string nGamename, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableBotStatusUpdate( nBnetStatus, nUptime, nName, nGamename ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+        CMySQLCallableBotStatusUpdate( map<string, uint32_t> nBnetStatus, uint32_t nUptime, uint32_t nPlayers, string nName, string nGamename, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableBotStatusUpdate( nBnetStatus, nUptime, nPlayers, nName, nGamename ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
         virtual ~CMySQLCallableBotStatusUpdate( ) { }
 
         virtual void operator( )( );

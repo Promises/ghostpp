@@ -171,7 +171,7 @@ public:
 	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType );
 	virtual bool W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType );
 	virtual uint32_t VerifyUser(string name, string token, string realm);
-    virtual bool BotStatusUpdate(map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename);
+    virtual bool BotStatusUpdate(map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename);
 
 	// threaded database functions
 
@@ -220,7 +220,7 @@ public:
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType );
 	virtual CCallableVerifyUser *ThreadedVerifyUser( string name, string token, string realm );
-    virtual CCallableBotStatusUpdate *ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename );
+    virtual CCallableBotStatusUpdate *ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename );
 };
 
 //
@@ -1023,12 +1023,13 @@ class CCallableBotStatusUpdate: virtual public CBaseCallable
 protected:
     map<string, uint32_t> m_BnetStatus;
     string m_Name;
+    uint32_t m_Players;
     string m_Gamename;
     uint32_t m_Uptime;
     bool m_Result;
 
 public:
-    CCallableBotStatusUpdate(map<string, uint32_t> nBnetStatus, uint32_t nUptime, string nName, string nGamename) : CBaseCallable( ), m_BnetStatus( nBnetStatus ), m_Uptime( nUptime ), m_Name( nName ), m_Gamename( nGamename ), m_Result( false ) { }
+    CCallableBotStatusUpdate(map<string, uint32_t> nBnetStatus, uint32_t nUptime, uint32_t nPlayers, string nName, string nGamename) : CBaseCallable( ), m_BnetStatus( nBnetStatus ), m_Uptime( nUptime ), m_Players( nPlayers ) ,m_Name( nName ), m_Gamename( nGamename ), m_Result( false ) { }
     virtual ~CCallableBotStatusUpdate( );
 
     virtual bool GetResult( ) { return m_Result; }

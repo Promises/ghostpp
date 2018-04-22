@@ -1127,7 +1127,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		// possibly autoban if the leave method caused this player to get autoban enabled
 		// and if this player is not observer (and if autobans are enabled)
 		// and if we haven't "soft" ended the game
-		if( player->GetAutoban( ) && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && Team != 12 && !m_SoftGameOver )
+		if( player->GetAutoban( ) && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && Team != 24 && !m_SoftGameOver )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
 			if( m_GameLoading || ( m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
@@ -1180,7 +1180,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// set the winner if appropriate, or draw the game
-		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 )
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 24 && m_NumTeams == 2 )
 		{
 			// check if everyone on leaver's team left but other team has more than two players
 			uint32_t CountAlly = 0;
@@ -1232,7 +1232,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "eihl" )
             DrawTicks = 1000 * 60 * 5; //five minute, before game starts
 
-		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < DrawTicks && m_StartPlayers > 6 && m_MapType != "treetag" && m_MapType != "battleships"  )
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 24 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < DrawTicks && m_StartPlayers > 6 && m_MapType != "treetag" && m_MapType != "battleships"  )
 		{
 			// check how many leavers, by starting from start players and subtracting each non-leaver player
 			uint32_t m_NumLeavers = m_StartPlayers;
@@ -1895,7 +1895,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Colour < 12 && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Colour < 24 && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 									ColourSlot( SID, Colour );
@@ -2049,7 +2049,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							unsigned char SID = (unsigned char)( Slot - 1 );
 
-							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Team < 12 && SID < m_Slots.size( ) )
+							if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && Team < 24 && SID < m_Slots.size( ) )
 							{
 								if( m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer( ) == 1 )
 								{
@@ -2717,7 +2717,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						for( vector<CUDPSocket *> :: iterator i = m_GHost->m_UDPSockets.begin( ); i != m_GHost->m_UDPSockets.end( ); ++i )
 						{
-							(*i)->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
+							(*i)->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), MapWidth, MapHeight, m_GameName, "Varlock", GetTime( ) - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath( ), m_SaveGame->GetMagicNumber( ), 24, 24, m_HostPort, FixedHostCounter, m_EntryKey ) );
 						}
 					}
 					else
@@ -2729,7 +2729,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						for( vector<CUDPSocket *> :: iterator i = m_GHost->m_UDPSockets.begin( ); i != m_GHost->m_UDPSockets.end( ); ++i )
 						{
-							(*i)->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey ) );
+							(*i)->SendTo( IP, Port, m_Protocol->SEND_W3GS_GAMEINFO( m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray( MapGameType, false ), m_Map->GetMapGameFlags( ), m_Map->GetMapWidth( ), m_Map->GetMapHeight( ), m_GameName, "Varlock", GetTime( ) - m_CreationTime, m_Map->GetMapPath( ), m_Map->GetMapCRC( ), 24, 24, m_HostPort, FixedHostCounter, m_EntryKey ) );
 						}
 					}
 				}

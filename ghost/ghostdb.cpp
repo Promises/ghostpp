@@ -265,7 +265,7 @@ uint32_t CGHostDB :: VerifyUser( string name, string token, string realm )
 	return 0;
 }
 
-bool CGHostDB :: BotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename )
+bool CGHostDB :: BotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename )
 {
     return true;
 }
@@ -495,7 +495,7 @@ CCallableVerifyUser *CGHostDB :: ThreadedVerifyUser( string name, string token, 
 	return NULL;
 }
 
-CCallableBotStatusUpdate *CGHostDB :: ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, string name, string gamename )
+CCallableBotStatusUpdate *CGHostDB :: ThreadedBotStatusUpdate( map<string, uint32_t> bnetStatus, uint32_t uptime, uint32_t players, string name, string gamename )
 {
     return NULL;
 }

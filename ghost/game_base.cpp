@@ -149,7 +149,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
-		if( (*i).GetTeam( ) < 12 && std::find( SeenTeams.begin( ), SeenTeams.end( ), (*i).GetTeam( ) ) == SeenTeams.end( ) )
+		if( (*i).GetTeam( ) < 24 && std::find( SeenTeams.begin( ), SeenTeams.end( ), (*i).GetTeam( ) ) == SeenTeams.end( ) )
 		{
 			m_NumTeams++;
 			SeenTeams.push_back( (*i).GetTeam( ) );
@@ -416,7 +416,7 @@ uint32_t CBaseGame :: GetNumHumanNonObservers( )
 	{
 		unsigned char SID = GetSIDFromPID( (*i)->GetPID( ) );
 
-		if( SID < m_Slots.size( ) && m_Slots[SID].GetTeam( ) != 12 )
+		if( SID < m_Slots.size( ) && m_Slots[SID].GetTeam( ) != 24 )
 			NumPlayers++;
 	}
 
@@ -690,7 +690,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			uint32_t slotstotal = m_Slots.size( );
 			uint32_t slotsopen = GetSlotsOpen();
 			if (slotsopen<2) slotsopen = 2;
-			if(slotstotal > 12) slotstotal = 12;
+			if(slotstotal > 12) slotstotal = 24;
 
 			if( m_SaveGame )
 			{
@@ -2475,7 +2475,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 		if( m_Tournament )
 		{
-			if( tmp <= 12 )
+			if( tmp <= 24 )
 			{
 				vector<uint32_t> TournamentLayout = m_Map->GetTournamentLayout( );
 
@@ -2512,7 +2512,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 				// search for empty observer slot
 				for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 				{
-					if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == 12 )
+					if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == 24 )
 					{
 						SID = i;
 						break;
@@ -2685,9 +2685,9 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		else
 		{
 			if( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES )
-				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM );
+				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 24, 24, SLOTRACE_RANDOM );
 			else
-				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
+				m_Slots[SID] = CGameSlot( Player->GetPID( ), 255, SLOTSTATUS_OCCUPIED, 0, 24, 24, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE );
 
 			// try to pick a team and colour
 			// make sure there aren't too many other players already
@@ -2696,7 +2696,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 			for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 			{
-				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 )
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 24 )
 					NumOtherPlayers++;
 			}
 
@@ -3469,10 +3469,10 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 	}
 	else
 	{
-		if( team > 12 )
+		if( team > 24 )
 			return;
 
-		if( team == 12 )
+		if( team == 24 )
 		{
 			if( m_Map->GetMapObservers( ) != MAPOBS_ALLOWED && m_Map->GetMapObservers( ) != MAPOBS_REFEREES )
 				return;
@@ -3488,7 +3488,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 
 			for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 			{
-				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 12 && m_Slots[i].GetPID( ) != player->GetPID( ) )
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != 24 && m_Slots[i].GetPID( ) != player->GetPID( ) )
 					++NumOtherPlayers;
 			}
 
@@ -3502,13 +3502,13 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 		{
 			m_Slots[SID].SetTeam( team );
 
-			if( team == 12 )
+			if( team == 24 )
 			{
 				// if they're joining the observer team give them the observer colour
 
-				m_Slots[SID].SetColour( 12 );
+				m_Slots[SID].SetColour( 24 );
 			}
-			else if( m_Slots[SID].GetColour( ) == 12 )
+			else if( m_Slots[SID].GetColour( ) == 24 )
 			{
 				// if they're joining a regular team give them an unused colour
 
@@ -3538,7 +3538,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 	{
 		// make sure the player isn't an observer
 
-		if( m_Slots[SID].GetTeam( ) == 12 )
+		if( m_Slots[SID].GetTeam( ) == 24 )
 			return;
 
 		ColourSlot( SID, colour );
@@ -3781,7 +3781,7 @@ void CBaseGame :: EventGameStarted( )
 
 	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
 	{
-		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) == 12 )
+		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) == 24 )
 		{
 			m_StreamSID = i;
 			m_StreamPID = m_Slots[i].GetPID( );
@@ -4267,7 +4267,7 @@ unsigned char CBaseGame :: GetNewColour( )
 {
 	// find an unused colour for a player to use
 
-	for( unsigned char TestColour = 0; TestColour < 12; ++TestColour )
+	for( unsigned char TestColour = 0; TestColour < 24; ++TestColour )
 	{
 		bool InUse = false;
 
@@ -4286,7 +4286,7 @@ unsigned char CBaseGame :: GetNewColour( )
 
 	// this should never happen
 
-	return 12;
+	return 24;
 }
 
 BYTEARRAY CBaseGame :: GetPIDs( )
@@ -4624,7 +4624,7 @@ void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kic
 
 void CBaseGame :: ColourSlot( unsigned char SID, unsigned char colour )
 {
-	if( SID < m_Slots.size( ) && colour < 12 )
+	if( SID < m_Slots.size( ) && colour < 24 )
 	{
 		// make sure the requested colour isn't already taken
 
@@ -4705,7 +4705,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 24 )
 			PlayerSlots.push_back( *i );
 	}
 
@@ -4751,7 +4751,7 @@ void CBaseGame :: ShuffleSlots( )
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
-		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 12 )
+		if( (*i).GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && (*i).GetComputer( ) == 0 && (*i).GetTeam( ) != 24 )
 		{
 			Slots.push_back( *CurrentPlayer );
 			++CurrentPlayer;
@@ -4779,7 +4779,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 	vector<unsigned char> BestOrdering = PlayerIDs;
 	double BestDifference = -1.0;
 
-	for( unsigned char i = StartTeam; i < 12; ++i )
+	for( unsigned char i = StartTeam; i < 24; ++i )
 	{
 		if( TeamSizes[i] > 0 )
 		{
@@ -4806,9 +4806,9 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 				// now calculate the team scores for all the teams that we know about (e.g. on subsequent recursion steps this will NOT be every possible team)
 
 				vector<unsigned char> :: iterator CurrentPID = TestOrdering.begin( );
-				double TeamScores[12];
+				double TeamScores[24];
 
-				for( unsigned char j = StartTeam; j < 12; ++j )
+				for( unsigned char j = StartTeam; j < 24; ++j )
 				{
 					TeamScores[j] = 0.0;
 
@@ -4823,11 +4823,11 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 
 				double LargestDifference = 0.0;
 
-				for( unsigned char j = StartTeam; j < 12; ++j )
+				for( unsigned char j = StartTeam; j < 24; ++j )
 				{
 					if( TeamSizes[j] > 0 )
 					{
-						for( unsigned char k = j + 1; k < 12; ++k )
+						for( unsigned char k = j + 1; k < 24; ++k )
 						{
 							if( TeamSizes[k] > 0 )
 							{
@@ -4856,7 +4856,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 
 	int currentPlayer = 0;
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < 24; ++i )
 	{
 		if( TeamSizes[i] > 0 )
 		{
@@ -4897,15 +4897,15 @@ void CBaseGame :: BalanceSlots( )
 	// use an array of 13 elements for 12 players because GHost++ allocates PID's from 1-12 (i.e. excluding 0) and we use the PID to index the array
 
 	vector<unsigned char> PlayerIDs;
-	unsigned char TeamSizes[12];
-	double PlayerScores[13];
-	memset( TeamSizes, 0, sizeof( unsigned char ) * 12 );
+	unsigned char TeamSizes[24];
+	double PlayerScores[25];
+	memset( TeamSizes, 0, sizeof( unsigned char ) * 24 );
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 	{
 		unsigned char PID = (*i)->GetPID( );
 
-		if( PID < 13 )
+		if( PID < 25 )
 		{
 			unsigned char SID = GetSIDFromPID( PID );
 
@@ -4913,7 +4913,7 @@ void CBaseGame :: BalanceSlots( )
 			{
 				unsigned char Team = m_Slots[SID].GetTeam( );
 
-				if( Team < 12 )
+				if( Team < 24 )
 				{
 					// we are forced to use a default score because there's no way to balance the teams otherwise
 
@@ -4948,7 +4948,7 @@ void CBaseGame :: BalanceSlots( )
 	uint32_t AlgorithmCost = 0;
 	uint32_t PlayersLeft = PlayerIDs.size( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < 24; ++i )
 	{
 		if( TeamSizes[i] > 0 )
 		{
@@ -4981,7 +4981,7 @@ void CBaseGame :: BalanceSlots( )
 
 	vector<unsigned char> :: iterator CurrentPID = BestOrdering.begin( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < 24; ++i )
 	{
 		unsigned char CurrentSlot = 0;
 
@@ -5019,7 +5019,7 @@ void CBaseGame :: BalanceSlots( )
 	SendAllChat( m_GHost->m_Language->BalancingSlotsCompleted( ) );
 	SendAllSlotInfo( );
 
-	for( unsigned char i = 0; i < 12; ++i )
+	for( unsigned char i = 0; i < 24; ++i )
 	{
 		bool TeamHasPlayers = false;
 		double TeamScore = 0.0;
