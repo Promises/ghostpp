@@ -1,0 +1,6 @@
+Welcome to Warcraft Maul!
+These games are hosted by MaulBot.
+Add to friendslist with /F A MaulBot
+Get current game name /F L or on https://maulbot.com
+Enjoy your time!
+Suggest changes to bot and map at maulbot.com
