@@ -2869,7 +2869,7 @@ void CBaseGame :: AddPlayerFast( CStagePlayer *potential )
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetNumPlayers( ) >= 11 )
+	if( GetNumPlayers( ) >= 23 )
 		DeleteVirtualHost( );
 
 	// turning the CStagePlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
