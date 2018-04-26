@@ -690,7 +690,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			uint32_t slotstotal = m_Slots.size( );
 			uint32_t slotsopen = GetSlotsOpen();
 			if (slotsopen<2) slotsopen = 2;
-			if(slotstotal > 12) slotstotal = 24;
+			if(slotstotal > 24) slotstotal = 24;
 
 			if( m_SaveGame )
 			{
