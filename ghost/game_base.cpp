@@ -3529,7 +3529,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
 		return;
 
-	if( colour > 11 )
+	if( colour > 23 )
 		return;
 
 	unsigned char SID = GetSIDFromPID( player->GetPID( ) );
