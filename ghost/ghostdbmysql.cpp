@@ -1037,6 +1037,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 
 uint32_t MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
 {
+  std::cout << "banning" << endl;
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	transform( admin.begin( ), admin.end( ), admin.begin( ), (int(*)(int))tolower );
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
