@@ -2637,6 +2637,10 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
 
+	if( AnyAdminCheck ){
+				SendAllChat("[ADMIN] "+ joinPlayer->GetName( ) + " joined the game.");
+	}
+
 	CGamePlayer *Player = new CGamePlayer( potential, m_SaveGame ? EnforcePID : GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
 	if( potential->GetGarenaUser( ) != NULL ) {
