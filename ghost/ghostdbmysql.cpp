@@ -894,7 +894,7 @@ bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, st
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "INSERT INTO admins ( botid, server, name ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "' )";
+	string Query = "INSERT INTO stats_admins ( botid, server, name ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -911,7 +911,7 @@ bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server,
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
 	bool Success = false;
-	string Query = "DELETE FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	string Query = "DELETE FROM stats_admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
