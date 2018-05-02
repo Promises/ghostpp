@@ -890,12 +890,35 @@ string MySQLAliasCheck( void *conn, string *error, uint32_t botid, string ip )
 
 bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, string user )
 {
-	return false;
+	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
+	string EscServer = MySQLEscapeString( conn, server );
+	string EscUser = MySQLEscapeString( conn, user );
+	bool Success = false;
+	string Query = "INSERT INTO admins ( botid, server, name ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "' )";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+		Success = true;
+
+	return Success;
 }
 
 bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server, string user )
 {
-	return false;
+	
+	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
+	string EscServer = MySQLEscapeString( conn, server );
+	string EscUser = MySQLEscapeString( conn, user );
+	bool Success = false;
+	string Query = "DELETE FROM admins WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+		Success = true;
+
+	return Success;
 }
 
 vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string server )
