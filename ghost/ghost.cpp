@@ -1554,7 +1554,7 @@ bool CGHost :: Update( long usecBlock )
 	}
 
     //refresh command list every 20 seconds
-    if( !m_CallableBotStatusUpdate && GetTime( ) - m_LastStatusUpdate >= 30 )
+    if( !m_CallableBotStatusUpdate && GetTime( ) - m_LastStatusUpdate >= 2 )
     {
         map<string, uint32_t> map;
         string botname = "";
