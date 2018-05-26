@@ -402,13 +402,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
+					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
+						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 				}
 			}
 			else
@@ -4108,13 +4108,13 @@ void CGame :: GetStatsUser( string *statsUser, string *statsRealm )
 		transform( (*statsRealm).begin( ), (*statsRealm).end( ), (*statsRealm).begin( ), (int(*)(int))tolower );
 		
 		if( *statsRealm == "uswest" )
-			*statsRealm = "uswest.battle.net";
+			*statsRealm = "connect-usw.classic.blizzard.com";
 		else if( *statsRealm == "useast" )
-			*statsRealm = "useast.battle.net";
+			*statsRealm = "connect-use.classic.blizzard.com";
 		else if( *statsRealm == "europe" )
-			*statsRealm = "europe.battle.net";
+			*statsRealm = "connect-eur.classic.blizzard.com";
 		else if( *statsRealm == "asia" )
-			*statsRealm = "asia.battle.net";
+			*statsRealm = "connect-kor.classic.blizzard.com";
 		else if( *statsRealm == "ec" )
 			*statsRealm = "entconnect";
 		else if( *statsRealm == "gclient" )
