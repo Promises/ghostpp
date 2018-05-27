@@ -65,13 +65,13 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 
 	if( !nServerAlias.empty( ) )
 		m_ServerAlias = nServerAlias;
-	else if( LowerServer == "useast.battle.net" )
+	else if( LowerServer == "connect-use.classic.blizzard.com" )
 		m_ServerAlias = "USEast";
-	else if( LowerServer == "uswest.battle.net" )
+	else if( LowerServer == "connect-usw.classic.blizzard.com" )
 		m_ServerAlias = "USWest";
-	else if( LowerServer == "asia.battle.net" )
+	else if( LowerServer == "connect-kor.classic.blizzard.com" )
 		m_ServerAlias = "Asia";
-	else if( LowerServer == "europe.battle.net" )
+	else if( LowerServer == "connect-eur.classic.blizzard.com" )
 		m_ServerAlias = "Europe";
 	else
 		m_ServerAlias = m_Server;
@@ -968,9 +968,9 @@ void CBNET :: ProcessPackets( )
 					string Server = m_Server;
 					transform( Server.begin( ), Server.end( ), Server.begin( ), (int(*)(int))tolower );
 
-					if( m_PasswordHashType == "pvpgn" && ( Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net" ) )
+					if( m_PasswordHashType == "pvpgn" && ( Server == "connect-use.classic.blizzard.com" || Server == "connect-usw.classic.blizzard.com" || Server == "connect-kor.classic.blizzard.com" || Server == "connect-eur.classic.blizzard.com" ) )
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section" );
-					else if( m_PasswordHashType != "pvpgn" && ( Server != "useast.battle.net" && Server != "uswest.battle.net" && Server != "asia.battle.net" && Server != "europe.battle.net" ) )
+					else if( m_PasswordHashType != "pvpgn" && ( Server != "connect-use.classic.blizzard.com" && Server != "connect-usw.classic.blizzard.com" && Server != "connect-kor.classic.blizzard.com" && Server != "connect-eur.classic.blizzard.com" ) )
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section" );
 
 					m_Socket->Disconnect( );

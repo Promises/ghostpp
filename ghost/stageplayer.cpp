@@ -461,11 +461,11 @@ void CStagePlayer :: ProcessPackets( )
 							{
 								string Realm = m_Realm;
 							
-								if( Realm == "uswest.battle.net" ) Realm = "USWest";
-								else if( Realm == "useast.battle.net" ) Realm = "USEast";
-								else if( Realm == "europe.battle.net" ) Realm = "Europe";
-								else if( Realm == "asia.battle.net" ) Realm = "Asia";
-							
+								if( Realm == "connect-usw.classic.blizzard.com" ) Realm = "USWest";
+								else if( Realm == "connect-use.classic.blizzard.com" ) Realm = "USEast";
+								else if( Realm == "connect-eur.classic.blizzard.com" ) Realm = "Europe";
+								else if( Realm == "connect-kor.classic.blizzard.com" ) Realm = "Asia";
+								 
 								m_GHost->BroadcastChat( m_Name + "@" + Realm, Message );
 							}
 						}
