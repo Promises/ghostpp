@@ -2702,7 +2702,7 @@ uint32_t MySQLVerifyUser( void *conn, string *error, uint32_t botid, string name
 	string EscToken = MySQLEscapeString( conn, token );
 	string EscRealm = MySQLEscapeString(conn, realm);
 
-	string UpdateQuery = "UPDATE stats_forum_connections SET status = 'approved' WHERE name='" + EscName + "' AND token='" + EscToken + "' AND server='" + EscRealm + "';";
+	string UpdateQuery = "UPDATE MaulBotApp_linkedplayer SET status = 'approved' WHERE name='" + EscName + "' AND token='" + EscToken + "' AND server='" + EscRealm + "';";
 	if( mysql_real_query( (MYSQL *)conn, UpdateQuery.c_str( ), UpdateQuery.size( ) ) != 0 )
                 *error = mysql_error( (MYSQL *)conn );
 	else
