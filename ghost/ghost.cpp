@@ -1580,7 +1580,6 @@ bool CGHost :: Update( long usecBlock )
     {
         bool success = m_CallableBotStatusUpdate->GetResult( );
 
-
         m_DB->RecoverCallable( m_CallableBotStatusUpdate );
         delete m_CallableBotStatusUpdate;
         m_CallableBotStatusUpdate = NULL;
