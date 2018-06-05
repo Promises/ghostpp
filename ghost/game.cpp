@@ -258,7 +258,8 @@ CGame :: ~CGame( )
 	boost::mutex::scoped_lock callablesLock( m_GHost->m_CallablesMutex );
 	
 	m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_GameUpdateID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), false ) );
-	
+		CONSOLE_Print( "[GAMEUPDATE] Called GAMEUPDATE" );
+
 	for( vector<PairedBanCheck> :: iterator i = m_PairedBanChecks.begin( ); i != m_PairedBanChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
@@ -994,12 +995,15 @@ for( vector<PairedVerifyUserCheck> :: iterator i = m_PairedVerifyUserChecks.begi
 	if( !m_CallableGameUpdate && m_GHost->m_Gamelist && ( m_LastGameUpdateTime == 0 || GetTime( ) - m_LastGameUpdateTime >= 30 || ( !m_GameLoaded && !m_GameLoading && GetTime( ) - m_LastGameUpdateTime >= 5 ) ) )
 	{
 		m_LastGameUpdateTime = GetTime( );
+			CONSOLE_Print( "[GAMEUPDATE] Called GAMEUPDATE 1" );
+
 		m_CallableGameUpdate =  m_GHost->m_DB->ThreadedGameUpdate( m_GameUpdateID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen(), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), true );
 	}
 	
 	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady( ) ) {
 		m_LastGameUpdateTime = GetTime( );
 		uint32_t ID = m_CallableGameUpdate->GetResult( );
+	CONSOLE_Print( "[GAMEUPDATE] Called GAMEUPDATE 2" );
 
 		if( ID != 0 )
 			m_GameUpdateID = ID;
