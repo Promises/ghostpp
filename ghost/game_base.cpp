@@ -240,6 +240,8 @@ void CBaseGame :: loop( )
 		fd_set send_fd;
 		FD_ZERO( &fd );
 		FD_ZERO( &send_fd );
+		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), false ) );
+
 
 		int nfds = 0;
 		unsigned int NumFDs = SetFD( &fd, &send_fd, &nfds );
