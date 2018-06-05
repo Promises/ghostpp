@@ -171,7 +171,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		CONSOLE_Print( "[GAME: " + m_GameName + "] error listening on port " + UTIL_ToString( m_HostPort ) );
 		m_Exiting = true;
 	}
-	m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), true ) );
+	//m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), true ) );
 }
 
 CBaseGame :: ~CBaseGame( )
@@ -240,7 +240,7 @@ void CBaseGame :: loop( )
 		fd_set send_fd;
 		FD_ZERO( &fd );
 		FD_ZERO( &send_fd );
-		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), false ) );
+		//m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), false ) );
 
 
 		int nfds = 0;
