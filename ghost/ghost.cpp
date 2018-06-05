@@ -1774,12 +1774,9 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 string CGHost :: GetSpoofName( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	CONSOLE_Print( "Getting spoof name for: " + name );
 	boost::mutex::scoped_lock lock( m_SpoofMutex );
 	if( m_SpoofList.count( name ) > 0 ) {
-		CONSOLE_Print( "Found: " + m_SpoofList[name] );
 		return m_SpoofList[name];
-
 	}
 		
 	lock.unlock( );
