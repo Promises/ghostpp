@@ -1013,6 +1013,7 @@ void CBNET :: ProcessPackets( )
 				string ClanCreateName = m_Protocol->RECEIVE_SID_CLANCREATIONINVITATION( Packet->GetData( ) );
 				
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Invited (creation) to clan " + ClanCreateName + ", !accept to accept" );
+				SendClanAcceptInvite(true);
 				m_LastInviteCreation = true;
 				break;
 			}
