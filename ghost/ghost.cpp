@@ -33,6 +33,7 @@
 #include "socket.h"
 #include "ghostdb.h"
 #include "ghostdbmysql.h"
+#include "ghostw3hmc.h"
 #include "bnet.h"
 #include "map.h"
 #include "packed.h"

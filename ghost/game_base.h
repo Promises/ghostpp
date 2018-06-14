@@ -49,6 +49,7 @@ class CIncomingMapSize;
 class CCallableScoreCheck;
 class CCallableLeagueCheck;
 class CCallableConnectCheck;
+class CCallableDoCURL;
 class CCallableStreamGameUpdate;
 class CCallableStreamPlayerUpdate;
 struct QueuedSpoofAdd;
@@ -61,6 +62,7 @@ public:
 	CGHost *m_GHost;
 	vector<CGamePlayer *> m_Players;				// vector of players
 	vector<CGameSlot> m_Slots;						// vector of slots
+	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<FakePlayer> m_FakePlayers;				// vector of fake players
 	vector<CStreamPacket *> *m_StreamPackets;		// cached action/chat packets to show in stream
 	vector<CStreamPlayer *> m_StreamPlayers;		// vector of streamers
@@ -78,7 +80,6 @@ protected:
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	vector<CCallableLeagueCheck *> m_LeagueChecks;
 	vector<CCallableConnectCheck *> m_ConnectChecks;	// session validation for entconnect system
-	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
 	set<string> m_IgnoredNames;						// set of player names to NOT print ban messages for when joining because they've already been printed
 	set<string> m_IPBlackList;						// set of IP addresses to blacklist from joining (todotodo: convert to uint32's for efficiency)
@@ -350,8 +351,8 @@ public:
 	virtual void StopLaggers( string reason );
 	virtual void CreateVirtualHost( );
 	virtual void DeleteVirtualHost( );
-	virtual void CreateFakePlayer( string name = "" );
-	virtual void CreateFakePlayer( unsigned char SID, string name = "" );
+	virtual FakePlayer CreateFakePlayer( string name = "" );
+	virtual FakePlayer CreateFakePlayer( unsigned char SID, string name = "" );
 	virtual void DeleteFakePlayer( );
 	virtual void ShowTeamScores( CGamePlayer *player = NULL );
 	virtual string GetJoinedRealm( uint32_t hostcounter );

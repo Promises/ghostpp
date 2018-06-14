@@ -440,10 +440,20 @@ CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string nam
 	return NULL;
 }
 
+/*CCallableDoCURL *CGHostDB :: ThreadedCURL( CIncomingAction *action, string args, CBaseGame *game, string reqId, string reqType, uint32_t value, int gcLen )
+{
+	return NULL;
+}*/
+
 CCallableLeagueCheck *CGHostDB :: ThreadedLeagueCheck( string category, string name, string server, string gamename )
 {
 	return NULL;
 }
+
+/*CCallableDoCURL :: ~CCallableDoCURL( )
+{
+	//delete m_Result;
+}*/
 
 CCallableGetTournament *CGHostDB :: ThreadedGetTournament( string gamename )
 {

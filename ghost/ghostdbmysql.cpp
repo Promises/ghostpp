@@ -952,6 +952,39 @@ vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string
 	return AdminList;
 }
 
+
+//TODO: getRank
+/*vector<string> MySQLAdminList( void *conn, string *error, string botname )
+{
+	string EscBotName = MySQLEscapeString( conn, botname );
+	vector<string> AdminList;
+	string Query = "SELECT ROC,TFT FROM MaulBotApp_cdkey WHERE botname='" + EscBotName + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( !Row.empty( ) )
+			{
+				AdminList.push_back( Row[0] );
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return AdminList;
+}*/
+
 uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server )
 {
 	string EscServer = MySQLEscapeString( conn, server );

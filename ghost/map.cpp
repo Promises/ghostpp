@@ -40,8 +40,10 @@
 // CMap
 //
 
-CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSize( UTIL_ExtractNumbers( "174 221 4 0", 4 ) ), m_MapInfo( UTIL_ExtractNumbers( "251 57 68 98", 4 ) ), m_MapCRC( UTIL_ExtractNumbers( "108 250 204 59", 4 ) ), m_MapSHA1( UTIL_ExtractNumbers( "35 81 104 182 223 63 204 215 1 17 87 234 220 66 3 185 82 99 6 13", 20 ) ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapWidth( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapHeight( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapLoadInGame( false ), m_MapNumPlayers( 24 ), m_MapNumTeams( 24 ), m_MapDefaultPlayerScore( 1000 ), m_Tournament( false ), m_TournamentFakeSlot( 255 ), m_StartPlayers( 0 ), m_Matchmaking( false ), m_MinimumScore( 0 ), m_MaximumScore( 99999 )
+CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSize( UTIL_ExtractNumbers( "174 221 4 0", 4 ) ), m_MapInfo( UTIL_ExtractNumbers( "251 57 68 98", 4 ) ), m_MapCRC( UTIL_ExtractNumbers( "108 250 204 59", 4 ) ), m_MapSHA1( UTIL_ExtractNumbers( "35 81 104 182 223 63 204 215 1 17 87 234 220 66 3 185 82 99 6 13", 20 ) ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapWidth( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapHeight( UTIL_ExtractNumbers( "172 0", 2 ) ), m_MapLoadInGame( false )
 {
+	m_MapNumPlayers = m_GHost->m_MaxPlayers;
+	m_MapNumTeams = m_GHost->m_MaxPlayers;
 	CONSOLE_Print( "[MAP] using hardcoded Emerald Gardens map data for Warcraft 3 version 1.24 & 1.24b" );
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 0, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
 	m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 1, 1, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE ) );
@@ -615,7 +617,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								ISS.read( (char *)&Flags, 4 );			// flags
 								ISS.read( (char *)&PlayerMask, 4 );		// player mask
 
-                                                                for( unsigned char j = 0; j < 24; ++j )
+                                                                for( unsigned char j = 0; j <  m_GHost->m_MaxPlayers; ++j )
 								{
 									if( PlayerMask & 1 )
 									{
@@ -795,6 +797,13 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_StartPlayers = CFG->GetInt( "map_startplayers", 0 );
 	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
 	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
+	m_MapW3HMCEnabled = CFG->GetInt( "map_w3hmc", 0 );
+	m_MapW3HMCGCFilename = CFG->GetString( "map_w3hmcgcname", "W3HMC" );
+	m_MapW3HMCTriggerID1 = CFG->GetInt( "map_w3hmctid1", 0x92 );
+	m_MapW3HMCTriggerID2 = CFG->GetInt( "map_w3hmctid2", 0x02 );
+	m_MapW3HMCBotName = CFG->GetString( "map_w3hmcbotname", "W3HMC" );
+	m_MapW3HMCBotSlot = CFG->GetInt( "map_w3hmcbotslot", 0 );
+	m_MapW3HMCSecret = CFG->GetString( "map_w3hmcsecret", string( ) );
 	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );
 	m_MapDefaultPlayerScore = CFG->GetInt( "map_defaultplayerscore", 1000 );
 	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
@@ -807,14 +816,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	
 	if( m_Tournament )
 	{
-		for( int i = 0; i <= 24; i++ )
+		for( int i = 0; i <= m_GHost->m_MaxPlayers; i++ )
 		{
 			uint32_t CurrentSlot = CFG->GetInt( "map_tournamentlayout" + UTIL_ToString( i ), 24 );
 			m_TournamentLayout.push_back( CurrentSlot );
 		}
 	}
 	
-	for( int i = 0; i <= 24; i++ )
+	for( int i = 0; i <= m_GHost->m_MaxPlayers; i++ )
 	{
 		uint32_t CurrentSlot = CFG->GetInt( "map_fakeplayer" + UTIL_ToString( i ), 255 );
 
@@ -846,7 +855,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( Slots.empty( ) )
 	{
-        for( uint32_t Slot = 1; Slot <= 24; ++Slot )
+        for( uint32_t Slot = 1; Slot <= m_GHost->m_MaxPlayers; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -862,7 +871,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		CONSOLE_Print( "[MAP] overriding slots" );
 		Slots.clear( );
 
-                for( uint32_t Slot = 1; Slot <= 24; ++Slot )
+                for( uint32_t Slot = 1; Slot <= m_GHost->m_MaxPlayers; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -890,10 +899,10 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( m_MapObservers == MAPOBS_ALLOWED || m_MapObservers == MAPOBS_REFEREES )
 	{
-		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( 24 - m_Slots.size( ) ) + " observer slots" );
+		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( m_GHost->m_MaxPlayers - m_Slots.size( ) ) + " observer slots" );
 
 		while( m_Slots.size( ) < 24 )
-			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 24, 24, SLOTRACE_RANDOM ) );
+			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, m_GHost->m_MaxPlayers, m_GHost->m_MaxPlayers, SLOTRACE_RANDOM ) );
 	}
 
 	CheckValid( );
@@ -976,19 +985,19 @@ void CMap :: CheckValid( )
 		CONSOLE_Print( "[MAP] invalid map_height detected" );
 	}
 
-	if( m_MapNumPlayers == 0 || m_MapNumPlayers > 24 )
+	if( m_MapNumPlayers == 0 || m_MapNumPlayers > m_GHost->m_MaxPlayers )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numplayers detected" );
 	}
 
-	if( m_MapNumTeams == 0 || m_MapNumTeams > 24 )
+	if( m_MapNumTeams == 0 || m_MapNumTeams > m_GHost->m_MaxPlayers )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numteams detected" );
 	}
 
-	if( m_Slots.empty( ) || m_Slots.size( ) > 24 )
+	if( m_Slots.empty( ) || m_Slots.size( ) > m_GHost->m_MaxPlayers )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_slot<x> detected" );

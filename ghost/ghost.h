@@ -45,6 +45,7 @@ class CSHA1;
 class CBNET;
 class CBaseGame;
 class CGHostDB;
+class CGHostW3HMC;
 class CBaseCallable;
 class CLanguage;
 class CMap;
