@@ -112,6 +112,7 @@ public:
 	vector<CBaseGame *> m_Games;			// these games are in progress
 	boost::mutex m_GamesMutex;
 	CGHostDB *m_DB;							// database
+	CGHostW3HMC *m_W3HMC;	
 	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	boost::mutex m_CallablesMutex;
 	vector<BYTEARRAY> m_LocalAddresses;		// vector of local IP addresses
@@ -264,6 +265,7 @@ public:
 	string m_WSSocketPassword;
 	WSSocket *m_WS;
 	uint32_t m_BotID;
+	uint32_t m_MaxPlayers;
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

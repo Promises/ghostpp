@@ -440,6 +440,10 @@ CGHost :: CGHost( CConfig *CFG )
 
 	m_DB = new CGHostDBMySQL( CFG );
 
+	if (CFG->GetInt( "bot_w3hmc", 0 ) == 1)
+		m_W3HMC = new CGHostW3HMC( CFG );
+	else
+		m_W3HMC = NULL;
 	// get a list of local IP addresses
 	// this list is used elsewhere to determine if a player connecting to the bot is local or not
 
@@ -1815,6 +1819,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_ReconnectExtendedTime = CFG->GetInt( "bot_reconnectextendedtime", 5 );
 	m_MaxGames = CFG->GetInt( "bot_maxgames", 5 );
 	string BotCommandTrigger = CFG->GetString( "bot_commandtrigger", "!" );
+	m_MaxPlayers = CFG->GetInt( "bot_maxplayers", 12 );
 
 	if( BotCommandTrigger.empty( ) )
 		BotCommandTrigger = "!";
@@ -2075,6 +2080,9 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		m_CurrentGame = new CGame( this, map, m_SaveGame, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
 	else
 		m_CurrentGame = new CGame( this, map, NULL, m_HostPort, gameState, gameName, ownerName, creatorName, creatorServer );
+
+	if (map->GetMapW3HMCEnabled() && map->GetMapW3HMCBotSlot() >= 0)
+		m_W3HMC->m_PID = m_CurrentGame->CreateFakePlayer(map->GetMapW3HMCBotSlot(), map->GetMapW3HMCBotName()).pid;
 
 	// todotodo: check if listening failed and report the error to the user
 
