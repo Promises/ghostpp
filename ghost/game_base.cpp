@@ -3508,7 +3508,7 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 
 			for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 			{
-				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != m_MaxPlayers && m_Slots[i].GetPID( ) != player->GetPID( ) )
+				if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) != m_GHost->m_MaxPlayers && m_Slots[i].GetPID( ) != player->GetPID( ) )
 					++NumOtherPlayers;
 			}
 
@@ -3522,13 +3522,13 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 		{
 			m_Slots[SID].SetTeam( team );
 
-			if( team == m_MaxPlayers )
+			if( team == m_GHost->m_MaxPlayers )
 			{
 				// if they're joining the observer team give them the observer colour
 
-				m_Slots[SID].SetColour( m_MaxPlayers );
+				m_Slots[SID].SetColour( m_GHost->m_MaxPlayers );
 			}
-			else if( m_Slots[SID].GetColour( ) == m_MaxPlayers )
+			else if( m_Slots[SID].GetColour( ) == m_GHost->m_MaxPlayers )
 			{
 				// if they're joining a regular team give them an unused colour
 
@@ -3558,7 +3558,7 @@ void CBaseGame :: EventPlayerChangeColour( CGamePlayer *player, unsigned char co
 	{
 		// make sure the player isn't an observer
 
-		if( m_Slots[SID].GetTeam( ) == m_MaxPlayers )
+		if( m_Slots[SID].GetTeam( ) == m_GHost->m_MaxPlayers )
 			return;
 
 		ColourSlot( SID, colour );

@@ -60,7 +60,6 @@
 
 CGHostW3HMC :: CGHostW3HMC( CConfig *CFG )
 {
-	CONSOLE_Print("[W3HMC] using Warcraft 3 Map HostBot Communication version 1");
 
 	m_DebugMode = (CFG->GetInt( "bot_w3hmcdebug", 0 ) == 1);
 	m_OutstandingCallables = 0;
@@ -191,8 +190,7 @@ string W3HMC_CURLRequest( string args )
 	CURL* CURLHandle = curl_easy_init();
 	struct curl_slist *HeaderList = NULL;
 	string CURLStringBuffer;
-
-	// Parse the arguments string
+	// Parse  the arguments string
 	string URL, ReqParams, CurrentKey, LastKey = "";
 	bool IsPost, NoReply = false;
 	istringstream SS(args);
@@ -264,6 +262,7 @@ void CCURLCallableDoCURL :: operator( )( )
 	CBaseCallable :: Init( );
 
 	m_Result = W3HMC_CURLRequest( m_Args );
+
 
 	// Clear arguments for the instance
 	((CGame*)m_Game)->m_GHost->m_W3HMC->m_Arguments.erase(GetReq());
