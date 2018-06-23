@@ -86,6 +86,8 @@ class CDBRVSPlayerSummary;
 class CDBSnipePlayerSummary;
 class CDBW3MMDPlayerSummary;
 class CBNET;
+class CIncomingAction; 
+
 
 struct Event;
 struct Event {
@@ -209,6 +211,7 @@ public:
 	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
+	//virtual CCallableDoCURL *ThreadedCURL( CIncomingAction* action, string args, CBaseGame *game, string reqId, string reqType, uint32_t value, int gcLen );
 	virtual CCallableLeagueCheck *ThreadedLeagueCheck( string category, string name, string server, string gamename );
 	virtual CCallableGetTournament *ThreadedGetTournament( string gamename );
 	virtual CCallableTournamentChat *ThreadedTournamentChat( uint32_t chatid, string message );
