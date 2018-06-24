@@ -160,11 +160,18 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	CONSOLE_Print( "[GAME: " + m_GameName + "] detected number of teams = " + UTIL_ToString( m_NumTeams ) );
 
 	// start listening for connections
-	if( !m_GHost->m_BindAddress.empty( ) )
+	if( !m_GHost->m_BindAddress.empty( ) ) {
 		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
+			if( m_Socket->Listen( m_GHost->m_BindAddress, m_HostPort ) )
+		CONSOLE_Print( "[GAME: " + m_GameName + "] listening on port " + UTIL_ToString( m_HostPort ) );
 	else
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] error listening on port " + UTIL_ToString( m_HostPort ) );
+		m_Exiting = true;
+	}
+	}
+	else {
 		CONSOLE_Print( "[GAME: " + m_GameName + "] attempting to bind to all available addresses" );
-
 	if( m_Socket->Listen( "", m_HostPort ) )
 		CONSOLE_Print( "[GAME: " + m_GameName + "] listening on port " + UTIL_ToString( m_HostPort ) );
 	else
@@ -172,6 +179,9 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 		CONSOLE_Print( "[GAME: " + m_GameName + "] error listening on port " + UTIL_ToString( m_HostPort ) );
 		m_Exiting = true;
 	}
+	}
+
+
 	//m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate( m_DatabaseID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen( ), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), true ) );
 }
 
