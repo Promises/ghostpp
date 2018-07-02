@@ -33,6 +33,9 @@
 #include "socket.h"
 #include "ghostdb.h"
 #include "ghostdbmysql.h"
+#ifdef WIN32
+  #include "ghostdbsqlite.h"
+#endif
 #include "ghostw3hmc.h"
 #include "bnet.h"
 #include "map.h"
@@ -52,7 +55,7 @@
 
 //Not compatible with Windows:
 #ifndef WIN32
-#include <execinfo.h> //to generate stack trace-like thing on exception
+	#include <execinfo.h> //to generate stack trace-like thing on exception
 #endif
 
 #include <stdlib.h>
@@ -134,6 +137,10 @@ void SignalCatcher2( int s )
 	else
 		exit( 1 );
 }
+ void handler()
+ {
+ 	exit(1);
+ }
 
 void SignalCatcher( int s )
 {
@@ -417,7 +424,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_ReconnectSocket = NULL;
 	m_StreamSocket = NULL;
 	m_GPSProtocol = new CGPSProtocol( );
-    m_GCBIProtocol = new CGCBIProtocol( );
+    //m_GCBIProtocol = new CGCBIProtocol( );
 	m_GameProtocol = new CGameProtocol( this );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
@@ -777,7 +784,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_FlameTriggers.push_back("raizen");
 
 	CONSOLE_Print( "[GHOST] Loading GeoIP data" );
-	m_GeoIP = GeoIP_open( m_GeoIPFile.c_str( ), GEOIP_STANDARD | GEOIP_CHECK_CACHE );
+	m_GeoIP = GeoIP_open(m_GeoIPFile.c_str(), GEOIP_STANDARD | GEOIP_CHECK_CACHE);
 
 	if( m_GeoIP == NULL )
 		CONSOLE_Print( "[GHOST] GeoIP: error opening database" );
@@ -803,7 +810,7 @@ CGHost :: ~CGHost( )
 		delete *i;
 
 	delete m_GPSProtocol;
-	delete m_GCBIProtocol;
+	//delete m_GCBIProtocol;
     delete m_GameProtocol;
 	delete m_CRC;
 	delete m_SHA;
@@ -855,7 +862,7 @@ bool CGHost :: Update( long usecBlock )
 		if( (*i)->readyDelete( ) )
 		{
 			delete *i;
-			m_Games.erase( i );
+			i = m_Games.erase( i );
 		} else {
 			++i;
 		}
