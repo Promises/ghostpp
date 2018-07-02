@@ -150,6 +150,7 @@ void CGHostW3HMC :: CreateThread( CBaseCallable *callable )
 
 void CGHostW3HMC :: SendString ( string msg )
 {
+	CONSOLE_Print( "[W3HMC] SendString "+msg );
 	unsigned char triggerID1 = m_Game->m_GHost->m_Map->GetMapW3HMCTriggerID1();
 	unsigned char triggerID2 = m_Game->m_GHost->m_Map->GetMapW3HMCTriggerID2();
 	unsigned char packetdata[]	= { 0x60, triggerID1, triggerID2, 0x0, 0x0, triggerID1, triggerID2, 0x0, 0x0 };
@@ -166,7 +167,7 @@ CCallableDoCURL *CGHostW3HMC :: ThreadedCURL( CIncomingAction* action, string ar
 {
 	BYTEARRAY *ActionData = action->GetAction( );
 	BYTEARRAY copy = BYTEARRAY( ActionData->begin( ), ActionData->begin( ) + (0 + ( gcLen + 4 ) + reqType.size( ) + reqType.size( )) );
-
+	CONSOLE_Print( "[W3HMC] ThreadedCURL "+args );
 	CCallableDoCURL *Callable = new CCURLCallableDoCURL( action, args, game, copy, reqId );
 	CreateThread( Callable );
     ++m_OutstandingCallables;
@@ -184,7 +185,7 @@ std::map<std::string, std::string> CGHostW3HMC :: ParseArguments( string args )
 	std::map<std::string, std::string> Arg;
 	istringstream SS(args);
 	string CurrentKey, LastKey, Args = "";
-
+	CONSOLE_Print( "[W3HMC] ParseArguments "+args );
 	bool isArgName = true;
 
 	while ( getline( SS, CurrentKey, ' ' ) ) 
@@ -205,7 +206,7 @@ std::map<std::string, std::string> CGHostW3HMC :: ParseArguments( string args )
 string W3HMC_CURLRequest( string args, bool *noReply )
 {
 	string Result = "";
-
+	CONSOLE_Print( "[W3HMC] W3HMC_CURLRequest "+args );
 	curl_global_init(CURL_GLOBAL_ALL);
 	CURL* CURLHandle = curl_easy_init();
 	struct curl_slist *HeaderList = NULL;
@@ -290,7 +291,7 @@ string W3HMC_CURLRequest( string args, bool *noReply )
 void CCURLCallableDoCURL :: operator( )( )
 {
 	CBaseCallable :: Init( );
-
+	CONSOLE_Print( "[W3HMC] CCURLCallableDoCURL " );
 	m_Result = W3HMC_CURLRequest( m_Args, &m_NoReply );
 
 	// Clear arguments for the instance
@@ -303,6 +304,7 @@ bool CGHostW3HMC :: ProcessAction( CIncomingAction *Action )
 {
 	if( m_Locked )
 		return false;
+	CONSOLE_Print( "[W3HMC] ProcessAction " );
 
 	unsigned int i = 0;
 	BYTEARRAY *ActionData = Action->GetAction( );
