@@ -303,7 +303,7 @@ void CCURLCallableDoCURL :: operator( )( )
 bool CGHostW3HMC :: ProcessAction( CIncomingAction *Action )
 {
 
-	CONSOLE_Print( "[W3HMC] ProcessAction " );
+
 
 	unsigned int i = 0;
 	BYTEARRAY *ActionData = Action->GetAction( );
@@ -311,7 +311,7 @@ bool CGHostW3HMC :: ProcessAction( CIncomingAction *Action )
 	string GCFileStr, Instance;
 	int Len = m_GCFilename.length();
 	uint32_t ValueInt;
-
+	CONSOLE_Print( ActionData );
 	// Scan each action in the packet
 	while( ActionData->size( ) >= i + (Len + 2) )
 	{
