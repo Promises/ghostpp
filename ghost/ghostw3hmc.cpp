@@ -302,8 +302,7 @@ void CCURLCallableDoCURL :: operator( )( )
 
 bool CGHostW3HMC :: ProcessAction( CIncomingAction *Action )
 {
-	if( m_Locked )
-		return false;
+
 	CONSOLE_Print( "[W3HMC] ProcessAction " );
 
 	unsigned int i = 0;
