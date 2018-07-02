@@ -311,7 +311,7 @@ bool CGHostW3HMC :: ProcessAction( CIncomingAction *Action )
 	string GCFileStr, Instance;
 	int Len = m_GCFilename.length();
 	uint32_t ValueInt;
-	CONSOLE_Print( *ActionData );
+	DEBUG_Print( *ActionData );
 	// Scan each action in the packet
 	while( ActionData->size( ) >= i + (Len + 2) )
 	{
