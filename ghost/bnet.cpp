@@ -439,9 +439,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
                         ++i;
         }
 
-	// refresh the admin list every hour
+	// refresh the admin list every half hour
 
-	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 3600 )
+	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 1800 )
 		m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( m_Server );
 
 	if( m_CallableAdminList && m_CallableAdminList->GetReady( ) )

@@ -779,7 +779,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// refresh every 3 seconds
 
-	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) - m_LastRefreshTime >= 3 )
+	if( !m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && GetSlotsOpen( ) > 0 && GetTime( ) - m_LastRefreshTime >= 1 )
 	{
 		// send a game refresh packet to each battle.net connection
 
