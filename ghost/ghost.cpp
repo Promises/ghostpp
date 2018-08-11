@@ -1900,8 +1900,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
     m_Stage = CFG->GetInt( "bot_stage", 0 ) == 0 ? false : true;
     m_ShowWaitingMessage = CFG->GetInt( "bot_showwaitingmessage", 0) == 0 ? false : true;
 
-    m_Announce = CFG->GetInt( "bot_announce", 1) == 1 ? true : false;
-    m_AnnounceInterval = CFG->GetInt( "bot_announceinterval", 15 ) * 10;
+    m_Announce = CFG->GetInt( "bot_announce", 0) == 0 ? false : true;
+    m_AnnounceInterval = CFG->GetInt( "bot_announceinterval", 15 ) * 60;
 
 	m_WSSocketIP = CFG->GetString("ws_ip", string());
 	m_WSSocketPort = CFG->GetInt("ws_port", 8080);
