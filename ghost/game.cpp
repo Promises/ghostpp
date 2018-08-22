@@ -1270,7 +1270,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 					m_NumLeavers--;
 			}
 			
-			if( m_NumLeavers >= 2 )
+			if( m_NumLeavers >= 40 )
 			{
 				SendAllChat( "Two players have left in the first few minutes." );
 				SendAllChat( "This game has been marked as a draw. You may leave at any time." );
