@@ -1531,7 +1531,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 				uint32_t GtdRank = UTIL_ToUInt32( Row[5] );
 				uint32_t Exp = UTIL_ToUInt32( Row[6] );
 
-				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime );
+				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime, Rank, WcmRank, GtdRank, Exp );
 			}
 			else
 				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 7 columns";
