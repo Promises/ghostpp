@@ -291,15 +291,15 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 			CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "common.j]" );
 		else
 		{
-			string BlizzardJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "blizzard.j" );
+			string BlizzardJ = UTIL_FileRead( m_GHost->m_MapCFGPath + "Blizzard.j" );
 
 			if( BlizzardJ.empty( ) )
-				CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "blizzard.j]" );
+				CONSOLE_Print( "[MAP] unable to calculate map_crc/sha1 - unable to read file [" + m_GHost->m_MapCFGPath + "Blizzard.j]" );
 			else
 			{
 				uint32_t Val = 0;
 
-				// update: it's possible for maps to include their own copies of common.j and/or blizzard.j
+				// update: it's possible for maps to include their own copies of common.j and/or Blizzard.j
 				// this code now overrides the default copies if required
 
 				bool OverrodeCommonJ = false;
@@ -345,9 +345,9 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 				{
 					HANDLE SubFile;
 
-					// override blizzard.j
+					// override Blizzard.j
 
-					if( SFileOpenFileEx( MapMPQ, "Scripts\\blizzard.j", 0, &SubFile ) )
+					if( SFileOpenFileEx( MapMPQ, "Scripts\\Blizzard.j", 0, &SubFile ) )
 					{
 						uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
 
@@ -358,7 +358,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 							if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 							{
-								CONSOLE_Print( "[MAP] overriding default blizzard.j with map copy while calculating map_crc/sha1" );
+								CONSOLE_Print( "[MAP] overriding default Blizzard.j with map copy while calculating map_crc/sha1" );
 								OverrodeBlizzardJ = true;
 								Val = Val ^ XORRotateLeft( (unsigned char *)SubFileData, BytesRead );
 								m_GHost->m_SHA->Update( (unsigned char *)SubFileData, BytesRead );

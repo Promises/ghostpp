@@ -1530,7 +1530,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 				uint32_t WcmRank = UTIL_ToUInt32( Row[4] );
 				uint32_t GtdRank = UTIL_ToUInt32( Row[5] );
 				uint32_t Exp = UTIL_ToUInt32( Row[6] );
-				CONSOLE_Print( "[exp:] " + UTIL_ToString( UTIL_ToUInt32( Row[6] ) ) );
+				CONSOLE_Print( "[exp:] " + Exp );
 				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime, Rank, WcmRank, GtdRank, Exp );
 			}
 			else

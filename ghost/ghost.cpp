@@ -678,7 +678,7 @@ CGHost :: CGHost( CConfig *CFG )
 		m_WS = new WSSocket(&m_WSSocketIP, m_WSSocketPort, m_BotID);
 	}
 
-	// extract common.j and blizzard.j from War3Patch.mpq if we can
+	// extract common.j and Blizzard.j from War3Patch.mpq if we can
 	// these two files are necessary for calculating "map_crc" when loading maps so we make sure to do it before loading the default map
 	// see CMap :: Load for more information
 
@@ -1946,9 +1946,9 @@ void CGHost :: ExtractScripts( )
 		else
 			CONSOLE_Print( "[GHOST] couldn't find Scripts\\common.j in MPQ file" );
 
-		// blizzard.j
+		// Blizzard.j
 
-		if( SFileOpenFileEx( PatchMPQ, "Scripts\\blizzard.j", 0, &SubFile ) )
+		if( SFileOpenFileEx( PatchMPQ, "Scripts\\Blizzard.j", 0, &SubFile ) )
 		{
 			uint32_t FileLength = SFileGetFileSize( SubFile, NULL );
 
@@ -1959,11 +1959,11 @@ void CGHost :: ExtractScripts( )
 
 				if( SFileReadFile( SubFile, SubFileData, FileLength, &BytesRead, 0 ) )
 				{
-					CONSOLE_Print( "[GHOST] extracting Scripts\\blizzard.j from MPQ file to [" + m_MapCFGPath + "blizzard.j]" );
-					UTIL_FileWrite( m_MapCFGPath + "blizzard.j", (unsigned char *)SubFileData, BytesRead );
+					CONSOLE_Print( "[GHOST] extracting Scripts\\Blizzard.j from MPQ file to [" + m_MapCFGPath + "Blizzard.j]" );
+					UTIL_FileWrite( m_MapCFGPath + "Blizzard.j", (unsigned char *)SubFileData, BytesRead );
 				}
 				else
-					CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\blizzard.j from MPQ file" );
+					CONSOLE_Print( "[GHOST] warning - unable to extract Scripts\\Blizzard.j from MPQ file" );
 
 				delete [] SubFileData;
 			}
@@ -1971,7 +1971,7 @@ void CGHost :: ExtractScripts( )
 			SFileCloseFile( SubFile );
 		}
 		else
-			CONSOLE_Print( "[GHOST] couldn't find Scripts\\blizzard.j in MPQ file" );
+			CONSOLE_Print( "[GHOST] couldn't find Scripts\\Blizzard.j in MPQ file" );
 
 		SFileCloseArchive( PatchMPQ );
 	}
