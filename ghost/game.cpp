@@ -450,7 +450,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				if( i->first.empty( ) )
 				{
 					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
-					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." )
+					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." );
 				}
 				else
 				{
