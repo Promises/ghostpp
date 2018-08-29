@@ -451,8 +451,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 				{
 					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." );
-					std::cout << "exp: " << GamePlayerSummary->GetExp( );
-					std::cout << "lvl: " << getLevelAtExperience( GamePlayerSummary->GetExp( ) );
+					CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
+					CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
 				}
 				else
 				{
@@ -462,8 +462,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 					{
 						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 						SendChat( Player, "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
-						std::cout << "exp: " << GamePlayerSummary->GetExp( );
-						std::cout << "lvl: " << getLevelAtExperience( GamePlayerSummary->GetExp( ) );
+						CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
+						CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
 					}
 				}
 			}
