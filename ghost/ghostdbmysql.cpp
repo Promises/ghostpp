@@ -1507,7 +1507,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(gametrack.num_games), 0) as num_games,(IFNULL(SUM(gametrack.total_leftpercent), 1) / IFNULL(SUM(gametrack.num_games), 1) * 100), ROUND(SUM(gametrack.playingtime) / 3600) as playingtime, max(MaulBotApp_playerstats.rank) as rank,max(MaulBotApp_playerstats.wcm_rank) as wcm_rank,max(MaulBotApp_playerstats.gtd_rank) as gtd_rank,ROUND(SUM(MaulBotApp_playerstats.experience) / 10) as experience FROM gametrack INNER JOIN MaulBotApp_playerstats ON (gametrack.id=MaulBotApp_playerstats.player_id) FROM gametrack INNER JOIN MaulBotApp_playerstats ON (gametrack.id=MaulBotApp_playerstats.player_id) WHERE gametrack.name='" + EscName + "'";
+	string Query = "SELECT IFNULL(SUM(gametrack.num_games), 0) as num_games,(IFNULL(SUM(gametrack.total_leftpercent), 1) / IFNULL(SUM(gametrack.num_games), 1) * 100), ROUND(SUM(gametrack.playingtime) / 3600) as playingtime, max(MaulBotApp_playerstats.rank) as rank,max(MaulBotApp_playerstats.wcm_rank) as wcm_rank,max(MaulBotApp_playerstats.gtd_rank) as gtd_rank,ROUND(SUM(MaulBotApp_playerstats.experience) / 10) as experience FROM gametrack INNER JOIN MaulBotApp_playerstats ON (gametrack.id=MaulBotApp_playerstats.player_id) WHERE gametrack.name='" + EscName + "'";
 	if( !realm.empty( ) )
 		Query += " AND gametrack.realm = '" + EscRealm + "'";
 
