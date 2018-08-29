@@ -1527,7 +1527,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 				double LeftPercent = UTIL_ToDouble( Row[1] );
 				uint32_t PlayingTime = UTIL_ToUInt32( Row[2] );
 				uint32_t Rank = UTIL_ToUInt32( Row[3] );
-				uint32_t WcmRank = UTIL_ToUInt32( Row[4] );
+				uint32_t WcmRank = UTIL_ToUInt32( Row[4] ) + 1;
 				uint32_t GtdRank = UTIL_ToUInt32( Row[5] );
 				uint32_t Exp = UTIL_ToUInt32( Row[6] );
 				// CONSOLE_Print( "[exp:] " + Exp );
