@@ -339,7 +339,7 @@ CGame :: ~CGame( )
 	    m_GHost->m_WS->SendGameAction(WSGameAction::FINISH, m_GameName, "");
 }
 
-uint32_t getExperienceAtLevel(uint32_t level)
+uint32_t CGame :: getExperienceAtLevel(uint32_t level)
 {
     double points = 0;
     for (uint32_t i = 1; i<=level; ++i)
@@ -349,7 +349,7 @@ uint32_t getExperienceAtLevel(uint32_t level)
     return uint32_t(points / 4);
 }
 
-uint32_t getLevelAtExperience(uint32_t experience)
+uint32_t CGame :: getLevelAtExperience(uint32_t experience)
 {
     for (uint32_t i = 1; i<=120; ++i){
         if(getExperienceAtLevel(i+1) > experience)
