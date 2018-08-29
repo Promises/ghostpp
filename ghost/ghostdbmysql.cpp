@@ -1507,9 +1507,9 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100), ROUND(SUM(playingtime) / 3600) FROM gametrack WHERE name='" + EscName + "'";
+	string Query = "SELECT IFNULL(SUM(gametrack.num_games), 0) as num_games,(IFNULL(SUM(gametrack.total_leftpercent), 1) / IFNULL(SUM(gametrack.num_games), 1) * 100), ROUND(SUM(gametrack.playingtime) / 3600) as playingtime, max(MaulBotApp_playerstats.rank) as rank,max(MaulBotApp_playerstats.wcm_rank) as wcm_rank,max(MaulBotApp_playerstats.gtd_rank) as gtd_rank,ROUND(SUM(MaulBotApp_playerstats.experience) / 10) as experience FROM gametrack INNER JOIN MaulBotApp_playerstats ON (gametrack.id=MaulBotApp_playerstats.player_id) FROM gametrack WHERE gametrack.name='" + EscName + "'";
 	if( !realm.empty( ) )
-		Query += " AND realm = '" + EscRealm + "'";
+		Query += " AND gametrack.realm = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1521,15 +1521,20 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 3 )
+			if( Row.size( ) == 7 )
 			{
 				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
 				double LeftPercent = UTIL_ToDouble( Row[1] );
 				uint32_t PlayingTime = UTIL_ToUInt32( Row[2] );
+				uint32_t Rank = UTIL_ToUInt32( Row[3] );
+				uint32_t WcmRank = UTIL_ToUInt32( Row[4] );
+				uint32_t GtdRank = UTIL_ToUInt32( Row[5] );
+				uint32_t Exp = UTIL_ToUInt32( Row[6] );
+
 				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime );
 			}
 			else
-				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 3 columns";
+				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 7 columns";
 
 			mysql_free_result( Result );
 		}

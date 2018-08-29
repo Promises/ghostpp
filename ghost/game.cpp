@@ -339,6 +339,26 @@ CGame :: ~CGame( )
 	    m_GHost->m_WS->SendGameAction(WSGameAction::FINISH, m_GameName, "");
 }
 
+uint32_t getExperienceAtLevel(uint32_t level)
+{
+    double points = 0;
+    for (uint32_t i = 1; i<=level; ++i)
+    {
+        points += static_cast<double>(i + 300 * pow(2, static_cast<float>(i) / 7));
+    }
+    return uint32_t(points / 4);
+}
+
+uint32_t getLevelAtExperience(uint32_t experience)
+{
+    for (uint32_t i = 1; i<=120; ++i){
+        if(getExperienceAtLevel(i+1) > experience)
+        {
+            return i;
+        }
+    }
+}
+
 bool CGame :: Update( void *fd, void *send_fd )
 {
 	// update callables
@@ -428,13 +448,19 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
+				{
 					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
+					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." )
+				}
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
-					if( Player )
+					if( Player ) 
+					{
 						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
+						SendChat( Player, "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
+					}
 				}
 			}
 			else

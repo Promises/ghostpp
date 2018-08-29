@@ -790,8 +790,8 @@ CDBGamePlayer :: ~CDBGamePlayer( )
 // CDBGamePlayerSummary
 //
 
-CDBGamePlayerSummary :: CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime )
-    : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_LeftPercent( nLeftPercent ), m_PlayingTime( nPlayingTime )
+CDBGamePlayerSummary :: CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime, uint32_t nRank, uint32_t nWcmRank, uint32_t nGtdRank, uint32_t nExp )
+	: m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_LeftPercent( nLeftPercent ), m_PlayingTime( nPlayingTime )
 {
 
 }

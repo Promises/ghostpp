@@ -1165,7 +1165,7 @@ private:
 	uint32_t m_PlayingTime;
 
 public:
-	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime );
+	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime, uint32_t nRank, uint32_t nWcmRank, uint32_t nGtdRank, uint32_t nExp );
 	~CDBGamePlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
@@ -1173,6 +1173,10 @@ public:
 	uint32_t GetTotalGames( )			{ return m_TotalGames; }
 	double GetLeftPercent( )			{ return m_LeftPercent; }
 	uint32_t GetPlayingTime( )			{ return m_PlayingTime; }
+	uint32_t GetRank()					{ return m_Rank; }
+	uint32_t GetWcmRank()				{ return m_WcmRank; }
+	uint32_t GetGtdRank()				{ return m_GtdRank; }
+	uint32_t GetExp()					{ return m_Exp; }
 };
 
 //
