@@ -1163,6 +1163,10 @@ private:
 	uint32_t m_TotalGames;			// total number of games played
 	double m_LeftPercent;
 	uint32_t m_PlayingTime;
+	uint32_t m_Rank;
+	uint32_t m_WcmRank;
+	uint32_t m_GtdRank;
+	uint32_t m_Exp;	
 
 public:
 	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime, uint32_t nRank, uint32_t nWcmRank, uint32_t nGtdRank, uint32_t nExp );
