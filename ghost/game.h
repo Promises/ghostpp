@@ -112,8 +112,8 @@ protected:
 public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
 	virtual ~CGame( );
-	virtual uint32_t getExperienceAtLevel(uint32_t level);
-	virtual uint32_t getLevelAtExperience(uint32_t experience);
+	virtual uint32_t getExperienceAtLevel(uint32_t *level);
+	virtual uint32_t getLevelAtExperience(uint32_t *experience);
 	virtual bool Update( void *fd, void *send_fd );
 	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
 	virtual void EventPlayerDeleted( CGamePlayer *player );
