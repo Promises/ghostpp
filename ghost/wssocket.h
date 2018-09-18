@@ -5,6 +5,8 @@
 #ifndef PROJECTS_WSSOCKET_H
 #define PROJECTS_WSSOCKET_H
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 class CTCPClient;
 
@@ -29,7 +31,8 @@ struct WSAction {
     enum action_type {
         AUTH = 0,
         GAME_ACTION = 1,
-        PLAYER_ACTION = 2
+        PLAYER_ACTION = 2,
+        COMMAND = 3
     };
 };
 
@@ -38,7 +41,8 @@ struct WSGameAction {
         CREATE = 0,
         FINISH = 1,
         STARTED = 2,
-        MESSAGE = 3
+        MESSAGE = 3,
+        REHOST = 4
     };
 };
 
@@ -65,6 +69,7 @@ private:
     bool m_WaitingToConnect;
     uint32_t m_LastConnectTry;
     uint32_t m_BotId;
+    void ProcessCommand(boost::property_tree::ptree ptree);
 
 public:
     WSSocket( string *m_IP, uint16_t m_Port, uint32_t m_BotId );

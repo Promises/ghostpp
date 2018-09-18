@@ -310,6 +310,7 @@ public:
 	void AsynchronousMapLoadHelper( CConfig *CFG, string nCFGFile );
 
 	string HostNameLookup( string ip );
+	bool IsLocalIP(string ip);
 };
 
 #endif

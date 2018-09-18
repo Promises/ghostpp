@@ -2368,3 +2368,14 @@ string CGHost :: HostNameLookup( string ip )
 
 	return info.hostname;
 }
+
+/**
+ * Checks whether a given ip is a private ip
+ * @brief CGHost::IsLocalIP
+ * @param {String} ip
+ * @return bool
+ */
+bool CGHost :: IsLocalIP( string ip ) {
+    // range 172.16 - 172.31 is ignored, can be added in the future, no need for now
+    return ip.find("10.") == 0 || ip.find("192.168.") == 0;
+}

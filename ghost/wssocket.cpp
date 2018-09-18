@@ -2,6 +2,8 @@
 #include "socket.h"
 #include "wssocket.h"
 #include "util.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 WSSocket :: WSSocket(string *nIP, uint16_t nPort, uint32_t nBotId) : m_IP( *nIP ), m_Port( nPort ), m_BotId( nBotId )
 {
@@ -257,24 +259,54 @@ void WSSocket :: ProcessMessage( string msg ) {
         m_HandshakeShared = true;
         m_Connected = true;
     } else {
-	CONSOLE_Print("[WSSocket] Recieved message: " + msg);
+	    boost::property_tree::ptree ptree;
+        // TODO: catch errors?!
+        boost::property_tree::read_json(msg, ptree);
+        uint32_t action = ptree.get<uint32_t>("action");
+        if(action == WSAction::COMMAND) {
+            ProcessCommand(ptree);
+        }
+        CONSOLE_Print("[WSSocket] Recieved message: " + msg);
     }
 }
 
 void WSSocket :: SendAction(WSAction::action_type type, string message) {
-    sendData(WSHeader::TEXT_FRAME, "{\"action\":\"" + UTIL_ToString(type) + "\", \"msg\":\"" + message + "\"}");
+    boost::property_tree::ptree ptree;
+    ptree.put("action", type);
+    ptree.put("msg", message);
+
+    std::stringstream ss;
+    boost::property_tree::json_parser::write_json(ss, ptree);
+    sendData(WSHeader::TEXT_FRAME, ss.str());
 }
 
 void WSSocket :: SendGameAction(WSGameAction::type type, string gamename, string message) {
-    sendData(
-      WSHeader::TEXT_FRAME,
-      "{\"action\":\"" + UTIL_ToString(WSAction::GAME_ACTION) + "\", \"subaction\":\"" +  UTIL_ToString(type) + "\",  \"gamename\":\"" + gamename + "\", \"msg\":\"" + message + "\"}"
-    );
+    boost::property_tree::ptree ptree;
+    ptree.put("action", WSAction::GAME_ACTION);
+    ptree.put("subaction", type);
+    ptree.put("gamename", gamename);
+    ptree.put("msg", message);
+
+    std::stringstream ss;
+    boost::property_tree::json_parser::write_json(ss, ptree);
+    sendData(WSHeader::TEXT_FRAME, ss.str());
 }
 
 void WSSocket :: SendPlayerAction(WSPlayerAction::type type, string gamename, string name, string realm, unsigned char sid, string msg) {
-    sendData(
-      WSHeader::TEXT_FRAME,
-      "{\"action\":\"" + UTIL_ToString(WSAction::PLAYER_ACTION) + "\", \"subaction\":\"" +  UTIL_ToString(type) + "\", \"gamename\":\"" + gamename + "\",\"name\":\"" + name + "\", \"realm\":\"" + realm + "\", \"sid\":\"" + UTIL_ToString(sid) + "\", \"msg\":\"" + msg + "\"}"
-    );
+    boost::property_tree::ptree ptree;
+    ptree.put("action", WSAction::PLAYER_ACTION);
+    ptree.put("subaction", type);
+    ptree.put("gamename", gamename);
+    ptree.put("name", name);
+    ptree.put("realm", realm);
+    ptree.put("sid", sid);
+    ptree.put("msg", msg);
+
+    std::stringstream ss;
+    boost::property_tree::json_parser::write_json(ss, ptree);
+    sendData(WSHeader::TEXT_FRAME, ss.str());
+}
+
+void WSSocket :: ProcessCommand(boost::property_tree::ptree ptree) {
+
 }

@@ -354,9 +354,10 @@ uint32_t CGame :: getLevelAtExperience(uint32_t experience)
     for (uint32_t i = 1; i<=120; ++i){
         if(getExperienceAtLevel(i+1) > experience)
         {
-            return i;
+            return i+1;
         }
     }
+    return 0;
 }
 
 bool CGame :: Update( void *fd, void *send_fd )
@@ -450,9 +451,9 @@ bool CGame :: Update( void *fd, void *send_fd )
 				if( i->first.empty( ) )
 				{
 					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
-					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." );
-					CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
-					CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
+					SendAllChat( "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) + 1 ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ) + "." );
+					//CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
+					//CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
 				}
 				else
 				{
@@ -461,9 +462,9 @@ bool CGame :: Update( void *fd, void *send_fd )
 					if( Player ) 
 					{
 						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
-						SendChat( Player, "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
-						CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
-						CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
+						SendChat( Player, "Rank: " + UTIL_ToString( GamePlayerSummary->GetRank( ) +1 ) + ", Total Level: " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
+						//CONSOLE_Print( "[exp:] " + UTIL_ToString( GamePlayerSummary->GetExp( ) ) );
+						//CONSOLE_Print( "[lvl:] " + UTIL_ToString( getLevelAtExperience( GamePlayerSummary->GetExp( ) ) ));
 					}
 				}
 			}
@@ -1554,23 +1555,15 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 	{
-		if( ( (*i)->GetServer( ) == player->GetSpoofedRealm( ) || ( (*i)->GetServer( ) == "hive.entgaming.net" && player->GetSpoofedRealm( ) == "entconnect" ) ) && (*i)->IsAdmin( User ) )
+		if( (*i)->GetServer( ) == player->GetSpoofedRealm( ) && (*i)->IsAdmin( User ) )
 		{
 			AdminCheck = true;
 			break;
 		}
 	}
 
-	bool RootAdminCheck = false;
 
-	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
-	{
-		if( (*i)->GetServer( ) == player->GetSpoofedRealm( ) && (*i)->IsRootAdmin( User ) )
-		{
-			RootAdminCheck = true;
-			break;
-		}
-	}
+	bool RootAdminCheck = player->GetSpoofed() && m_GHost->IsLocalIP(player->GetExternalIPString());
 
 	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
 	{
