@@ -4253,7 +4253,7 @@ string CBaseGame :: GetPlayerList( )
 			}
 		}
 
-		else
+		else if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
 			players += "\t\t\t\t"; // in this bracnh + IP - please update the stats page. 
 	}
 
