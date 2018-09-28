@@ -3291,7 +3291,8 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 						ce.side = 2;						
 						m_GameChatEvents.push_back(ce);
 
-						if(m_GHost->m_WS) {
+						if(false && m_GHost->m_WS) {
+							//disabled becacuse crashes
 							string Realm = player->GetSpoofedRealm( );
 
 							if( !player->GetSpoofed( ) )
@@ -3365,7 +3366,8 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
                         ce.side = fteam;
                         m_LobbyChatEvents.push_back(ce);
 
-						if(m_GHost->m_WS) {
+						if(false && m_GHost->m_WS) {
+							// disabled because crashes
 							string Realm = player->GetSpoofedRealm( );
 
 							if( !player->GetSpoofed( ) )
