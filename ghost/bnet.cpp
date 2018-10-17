@@ -548,7 +548,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			WaitTicks = 7800;
 
 		//disable waitticks for our own server
-		if( m_Server == "hive.entgaming.net" )
+		if( m_Server == "connect.entgaming.net" )
 			WaitTicks = 0;
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
@@ -570,7 +570,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		// after 60 seconds, we send a /whoami chat packet
 		// then, if still no response after 90 second total, we disconnect
 
-		if( GetTicks( ) - m_LastPacketReceivedTicks > 60000 && m_Server != "hive.entgaming.net" )
+		if( GetTicks( ) - m_LastPacketReceivedTicks > 60000 && m_Server != "connect.entgaming.net" )
 		{
 			if( GetTicks( ) - m_LastCommandTicks > 20000 )
 				QueueChatCommand( "/whoami" );
@@ -1246,11 +1246,11 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-	// check if this is root admin bot on hive.entgaming.net
+	// check if this is root admin bot on connect.entgaming.net
 //	string LowerUser = User;
 //	transform( LowerUser.begin( ), LowerUser.end( ), LowerUser.begin( ), (int(*)(int))tolower );
 
-//	if( m_Server == "hive.entgaming.net" && User == "clan.enterprise" )
+//	if( m_Server == "connect.entgaming.net" && User == "clan.enterprise" )
 //		ForceRoot = true;
 	
 	// Check if the command is disabled

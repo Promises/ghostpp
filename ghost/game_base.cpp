@@ -3385,7 +3385,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					{
 						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 						{
-							if( (*i)->GetServer( ) == "hive.entgaming.net" )
+							if( (*i)->GetServer( ) == "connect.entgaming.net" )
 							{
 								(*i)->QueueChatCommand( "announcefun " + player->GetName( ) + " " + chatPlayer->GetMessage( ) );
 							}
